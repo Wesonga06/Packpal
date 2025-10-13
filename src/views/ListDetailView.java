@@ -3,7 +3,7 @@ package views;
 import models.User;
 import models.PackingList;
 import models.Item;
-import packpal.dao.PackingListDAO;
+import dao.PackingListDAO;
 import services.WeatherService;
 import services.WeatherService.WeatherData;
 import javax.swing.*;
