@@ -5,9 +5,7 @@
         <group>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/packpal/dao/PreparedStatement.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/controllers/WelcomeController.java</file>
-            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/dao/ResultSet.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/models/Item.java</file>
-            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/models/PackingProgress.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/models/PackingList.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/models/User.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/services/WeatherService.java</file>
@@ -21,6 +19,8 @@
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/WelcomeView.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/packpal/Main.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/database/DatabaseConfig.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/dao/PackingListDAO.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/models/PackingProgress.java</file>
         </group>
     </open-files>
 </project-private>

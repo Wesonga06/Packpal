@@ -187,25 +187,25 @@ public class MyListsView extends JFrame {
         progressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         
         // Weather info if destination is set
-        if (list.getDestination() != null && !list.getDestination().isEmpty) {
-            JPanel weatherPanel = createWeatherPanel((String) list.getDestination());
-            if (weatherPanel != null) {
-                card.add(topPanel);
-                card.add(infoLabel);
-                card.add(weatherPanel);
-                card.add(Box.createRigidArea(new Dimension(0, 10)));
-                card.add(progressBar);
-            } else {
-                card.add(topPanel);
-                card.add(infoLabel);
-                card.add(progressBar);
-            }
-        } else {
-            card.add(topPanel);
-            card.add(infoLabel);
-            card.add(progressBar);
-        }
-        
+if (list.getDestination() != null && !list.getDestination().isEmpty()) {
+    JPanel weatherPanel = createWeatherPanel((String) list.getDestination());
+    if (weatherPanel != null) {
+        card.add(topPanel);
+        card.add(infoLabel);
+        card.add(weatherPanel);
+        card.add(Box.createRigidArea(new Dimension(0, 10)));
+        card.add(progressBar);
+    } else {
+        card.add(topPanel);
+        card.add(infoLabel);
+        card.add(progressBar);
+    }
+} else {
+    card.add(topPanel);
+    card.add(infoLabel);
+    card.add(progressBar);
+}
+
         card.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 openListDetails(list);
