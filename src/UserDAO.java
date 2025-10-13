@@ -150,7 +150,22 @@ public class UserDAO {
     }
 
     public boolean emailExists(String email) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
+        try(Connection conn = DatabaseConfig.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)){
+            
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+            
+            if(rs.next()){
+                return rs.getInt(1) > 0;
+                
+            }
+}catch(SQLException e){
+                    e.printStackTrace();
+                    }
+            return false;
+        }
     }
 
     public boolean registerUser(String email, String password, String fullName) {

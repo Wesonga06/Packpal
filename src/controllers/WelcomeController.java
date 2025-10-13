@@ -1,11 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package controllers;
 
 import views.WelcomeView;
 import views.LoginView;
+import views.RegisterView;
 
 public class WelcomeController {
     private WelcomeView view;
@@ -15,10 +12,10 @@ public class WelcomeController {
     }
     
     public void handleGetStarted() {
-        // Navigate to Create Account page
+        // Navigate to Create Account (Register) page
         view.setVisible(false);
-        CreateAccountView createAccountView = new CreateAccountView();
-        createAccountView.setVisible(true);
+        RegisterView registerView = new RegisterView();
+        registerView.setVisible(true);
     }
     
     public void handleHaveAccount() {
@@ -26,15 +23,5 @@ public class WelcomeController {
         view.setVisible(false);
         LoginView loginView = new LoginView();
         loginView.setVisible(true);
-    }
-
-    private static class CreateAccountView {
-
-        public CreateAccountView() {
-        }
-
-        private void setVisible(boolean b) {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
     }
 }
