@@ -11,10 +11,8 @@ public class Item {
     private int priority;
     private Timestamp createdAt;
 
-    // 🟩 Full constructor (retrieving from DB)
-    public Item(int itemId, int listId, String itemName, String category,
-                boolean isPacked, int priority, Timestamp createdAt) {
-        this.itemId = itemId;
+    // Full constructor
+    public Item(int listId, String itemName, String category, boolean isPacked, int priority, Timestamp createdAt) {
         this.listId = listId;
         this.itemName = itemName;
         this.category = category;
@@ -23,18 +21,7 @@ public class Item {
         this.createdAt = createdAt;
     }
 
-    // 🟩 Constructor for creating new items (before insert)
-    public Item(int listId, String itemName, String category,
-                boolean isPacked, int priority) {
-        this.listId = listId;
-        this.itemName = itemName;
-        this.category = category;
-        this.isPacked = isPacked;
-        this.priority = priority;
-        this.createdAt = new Timestamp(System.currentTimeMillis());
-    }
-
-    // 🟩 Empty constructor (required for DAO use)
+    // Empty constructor
     public Item() {}
 
     // ===========================

@@ -2,12 +2,16 @@ package dao;
 
 import database.DatabaseConfig;
 import models.PackingList;
+import models.Item;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import models.Item;
 
 public class PackingListDAO {
+
+    // ===========================
+    // Packing List Methods
+    // ===========================
 
     // Create a new packing list
     public int createPackingList(PackingList list) {
@@ -139,18 +143,111 @@ public class PackingListDAO {
         return false;
     }
 
-    public boolean addItem(Item item) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    // ===========================
+    // Item Methods
+    // ===========================
+
+    // Add new item
+    public int addItem(Item item) {
+        String sql = "INSERT INTO items (list_id, item_name, category, is_packed, priority, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            stmt.setInt(1, item.getListId());
+            stmt.setString(2, item.getItemName());
+            stmt.setString(3, item.getCategory());
+            stmt.setBoolean(4, item.isPacked());
+            stmt.setInt(5, item.getPriority());
+            stmt.setTimestamp(6, item.getCreatedAt());
+
+            int rowsInserted = stmt.executeUpdate();
+
+            if (rowsInserted > 0) {
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        return rs.getInt(1); // return new item_id
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
-    public void deleteItem(int itemId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    // Delete item
+    public boolean deleteItem(int itemId) {
+        String sql = "DELETE FROM items WHERE item_id = ?";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, itemId);
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
-    public void updateItemPackedStatus(int itemId, boolean selected) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    // Update item packed status
+    public boolean updateItemPackedStatus(int itemId, boolean isPacked) {
+        String sql = "UPDATE items SET is_packed = ? WHERE item_id = ?";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setBoolean(1, isPacked);
+            stmt.setInt(2, itemId);
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Update item category
+    public boolean updateItemCategory(int itemId, String newCategory) {
+        String sql = "UPDATE items SET category = ? WHERE item_id = ?";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, newCategory);
+            stmt.setInt(2, itemId);
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Get item ID by name and list
+    public int getItemIdByNameAndList(int listId, String itemName) {
+        String sql = "SELECT item_id FROM items WHERE list_id = ? AND item_name = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, listId);
+            stmt.setString(2, itemName);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("item_id");
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 }
-
-
 
