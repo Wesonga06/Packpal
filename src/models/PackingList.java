@@ -86,6 +86,10 @@ public class PackingList {
         return (int) ((getPackedItemsCount() / (double) total) * 100);
     }
 
+    public int getTotalItems() {
+        return getTotalItemsCount();
+    }
+
     @Override
     public String toString() {
         return "PackingList{" +
@@ -98,10 +102,7 @@ public class PackingList {
                 ", tripType='" + tripType + '\'' +
                 '}';
     }
-
-    public String getTotalItems() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
 }
+
 
 
