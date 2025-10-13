@@ -3,6 +3,7 @@ package dao;
 import database.DatabaseConfig;
 import models.PackingList;
 import models.Item;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,6 @@ public class PackingListDAO {
     // Packing List Methods
     // ===========================
 
-    // Create a new packing list
     public int createPackingList(PackingList list) {
         String sql = "INSERT INTO packing_lists (user_id, list_name, description, destination, start_date, end_date, trip_type) "
                    + "VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -42,10 +42,9 @@ public class PackingListDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return -1; // failed
+        return -1;
     }
 
-    // Get all packing lists by user ID
     public List<PackingList> getPackingListsByUser(int userId) {
         List<PackingList> lists = new ArrayList<>();
         String sql = "SELECT * FROM packing_lists WHERE user_id = ? ORDER BY start_date DESC";
@@ -75,7 +74,6 @@ public class PackingListDAO {
         return lists;
     }
 
-    // Get a single packing list by ID
     public PackingList getPackingListById(int listId) {
         String sql = "SELECT * FROM packing_lists WHERE list_id = ?";
         PackingList list = null;
@@ -104,9 +102,8 @@ public class PackingListDAO {
         return list;
     }
 
-    // Update packing list
     public boolean updatePackingList(PackingList list) {
-        String sql = "UPDATE packing_lists SET list_name = ?, description = ?, destination = ?, start_date = ?, end_date = ?, trip_type = ? WHERE list_id = ?";
+        String sql = "UPDATE packing_lists SET list_name=?, description=?, destination=?, start_date=?, end_date=?, trip_type=? WHERE list_id=?";
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -127,9 +124,8 @@ public class PackingListDAO {
         return false;
     }
 
-    // Delete packing list
     public boolean deletePackingList(int listId) {
-        String sql = "DELETE FROM packing_lists WHERE list_id = ?";
+        String sql = "DELETE FROM packing_lists WHERE list_id=?";
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -147,12 +143,11 @@ public class PackingListDAO {
     // Item Methods
     // ===========================
 
-    // Add new item
-    public int addItem(Item item) {
-        String sql = "INSERT INTO items (list_id, item_name, category, is_packed, priority, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+    public boolean addItem(Item item) {
+        String sql = "INSERT INTO items (list_id, item_name, category, packed, priority, created_at) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, item.getListId());
             stmt.setString(2, item.getItemName());
@@ -161,30 +156,6 @@ public class PackingListDAO {
             stmt.setInt(5, item.getPriority());
             stmt.setTimestamp(6, item.getCreatedAt());
 
-            int rowsInserted = stmt.executeUpdate();
-
-            if (rowsInserted > 0) {
-                try (ResultSet rs = stmt.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        return rs.getInt(1); // return new item_id
-                    }
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }
-
-    // Delete item
-    public boolean deleteItem(int itemId) {
-        String sql = "DELETE FROM items WHERE item_id = ?";
-
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, itemId);
             return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -193,50 +164,13 @@ public class PackingListDAO {
         return false;
     }
 
-    // Update item packed status
-    public boolean updateItemPackedStatus(int itemId, boolean isPacked) {
-        String sql = "UPDATE items SET is_packed = ? WHERE item_id = ?";
-
+    public int getItemIdByNameAndList(String itemName, int listId) {
+        String sql = "SELECT item_id FROM items WHERE item_name=? AND list_id=?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setBoolean(1, isPacked);
-            stmt.setInt(2, itemId);
-
-            return stmt.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    // Update item category
-    public boolean updateItemCategory(int itemId, String newCategory) {
-        String sql = "UPDATE items SET category = ? WHERE item_id = ?";
-
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, newCategory);
-            stmt.setInt(2, itemId);
-
-            return stmt.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    // Get item ID by name and list
-    public int getItemIdByNameAndList(int listId, String itemName) {
-        String sql = "SELECT item_id FROM items WHERE list_id = ? AND item_name = ?";
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, listId);
-            stmt.setString(2, itemName);
+            stmt.setString(1, itemName);
+            stmt.setInt(2, listId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -247,7 +181,77 @@ public class PackingListDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return -1;
+        return -1; // Not found
+    }
+
+    public boolean updateItemCategory(int itemId, String newCategory) {
+        String sql = "UPDATE items SET category=? WHERE item_id=?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, newCategory);
+            stmt.setInt(2, itemId);
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void deleteItem(int itemId) {
+        String sql = "DELETE FROM items WHERE item_id=?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, itemId);
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateItemPackedStatus(int itemId, boolean packed) {
+        String sql = "UPDATE items SET packed=? WHERE item_id=?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setBoolean(1, packed);
+            stmt.setInt(2, itemId);
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<Item> getItemsByListId(int listId) {
+        List<Item> items = new ArrayList<>();
+        String sql = "SELECT * FROM items WHERE list_id=? ORDER BY created_at ASC";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, listId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Item item = new Item();
+                    item.setItemId(rs.getInt("item_id"));
+                    item.setListId(rs.getInt("list_id"));
+                    item.setItemName(rs.getString("item_name"));
+                    item.setCategory(rs.getString("category"));
+                    item.setPacked(rs.getBoolean("packed"));
+                    item.setPriority(rs.getInt("priority"));
+                    item.setCreatedAt(rs.getTimestamp("created_at"));
+                    items.add(item);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return items;
     }
 }
 
