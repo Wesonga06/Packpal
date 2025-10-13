@@ -262,7 +262,7 @@ public class SettingsView extends JFrame {
             nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
             nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             
-            nameField = new JTextField(user.getFullName());
+            nameField = new JTextField(user.getName());
             nameField.setFont(new Font("Arial", Font.PLAIN, 14));
             nameField.setMaximumSize(new Dimension(320, 40));
             nameField.setAlignmentX(Component.LEFT_ALIGNMENT);

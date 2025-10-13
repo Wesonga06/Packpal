@@ -159,7 +159,7 @@ public class LoginView extends JFrame {
         
         if (user != null) {
             JOptionPane.showMessageDialog(this,
-                "Login successful! Welcome, " + user.getFullName() + "!",
+                "Login successful! Welcome, " + user.Name() + "!",
                 "Success",
                 JOptionPane.INFORMATION_MESSAGE);
             

@@ -12,7 +12,9 @@ public class PackingList {
     private Date startDate;
     private Date endDate;
     private String tripType;
+    private List<Item> items; // optional — if you want to hold related items
 
+    // 🟩 Full constructor
     public PackingList(int listId, int userId, String listName, String description,
                        String destination, Date startDate, Date endDate, String tripType) {
         this.listId = listId;
@@ -25,11 +27,24 @@ public class PackingList {
         this.tripType = tripType;
     }
 
-    public PackingList() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    // 🟩 Constructor for new list (before inserting to DB)
+    public PackingList(int userId, String listName, String description,
+                       String destination, Date startDate, Date endDate, String tripType) {
+        this.userId = userId;
+        this.listName = listName;
+        this.description = description;
+        this.destination = destination;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.tripType = tripType;
     }
 
+    // 🟩 Empty constructor
+    public PackingList() {}
+
+    // ===========================
     // Getters
+    // ===========================
     public int getListId() { return listId; }
     public int getUserId() { return userId; }
     public String getListName() { return listName; }
@@ -38,49 +53,55 @@ public class PackingList {
     public Date getStartDate() { return startDate; }
     public Date getEndDate() { return endDate; }
     public String getTripType() { return tripType; }
+    public List<Item> getItems() { return items; }
 
-    public void setUserId(int userId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
+    // ===========================
+    // Setters
+    // ===========================
+    public void setListId(int listId) { this.listId = listId; }
+    public void setUserId(int userId) { this.userId = userId; }
+    public void setListName(String listName) { this.listName = listName; }
+    public void setDescription(String description) { this.description = description; }
+    public void setDestination(String destination) { this.destination = destination; }
+    public void setStartDate(Date startDate) { this.startDate = startDate; }
+    public void setEndDate(Date endDate) { this.endDate = endDate; }
+    public void setTripType(String tripType) { this.tripType = tripType; }
+    public void setItems(List<Item> items) { this.items = items; }
 
-    public void setListName(String listName) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public void setDescription(String trim) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public void setDestination(String trim) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public void setStartDate(Date date) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public void setEndDate(Date date) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public void setTripType(String toString) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public List<Item> getItems() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
+    // ===========================
+    // Utility Methods
+    // ===========================
     public int getPackedItemsCount() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (items == null || items.isEmpty()) return 0;
+        return (int) items.stream().filter(Item::isPacked).count();
+    }
+
+    public int getTotalItemsCount() {
+        return (items == null) ? 0 : items.size();
     }
 
     public int getPackingPercentage() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        int total = getTotalItemsCount();
+        if (total == 0) return 0;
+        return (int) ((getPackedItemsCount() / (double) total) * 100);
+    }
+
+    @Override
+    public String toString() {
+        return "PackingList{" +
+                "listId=" + listId +
+                ", userId=" + userId +
+                ", listName='" + listName + '\'' +
+                ", destination='" + destination + '\'' +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", tripType='" + tripType + '\'' +
+                '}';
     }
 
     public String getTotalItems() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
+
 
