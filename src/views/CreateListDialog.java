@@ -2,7 +2,7 @@ package views;
 
 import models.User;
 import models.PackingList;
-import packpal.dao.PackingListDAO;
+import dao.PackingListDAO;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.Date;

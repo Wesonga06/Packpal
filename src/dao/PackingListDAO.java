@@ -6,9 +6,9 @@ package dao;
 
 import java.util.ArrayList;
 import java.util.List;
-import packpal.database.DatabaseConfig;
-import packpal.models.Item;
-import packpal.models.PackingList;
+import database.DatabaseConfig;
+import models.Item;
+import models.PackingList;
 import java.sql.*;  // Essential: Covers Connection, PreparedStatement, SQLException, etc.
 
 /**

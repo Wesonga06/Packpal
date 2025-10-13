@@ -1,7 +1,7 @@
 package dao;
 
-import packpal.database.DatabaseConfig;
-import packpal.models.User;
+import database.DatabaseConfig;
+import models.User;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

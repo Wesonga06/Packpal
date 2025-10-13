@@ -4,8 +4,8 @@
  */
 package controllers;
 
-import packpal.views.WelcomeView;
-import packpal.views.LoginView;
+import views.WelcomeView;
+import views.LoginView;
 
 public class WelcomeController {
     private WelcomeView view;
