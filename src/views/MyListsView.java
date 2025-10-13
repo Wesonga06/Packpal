@@ -121,7 +121,7 @@ public class MyListsView extends JFrame {
     private void loadLists() {
         listsPanel.removeAll();
         
-        List<PackingList> lists = (List<PackingList>) packingListDAO.getPackingListsByUser(currentUser.getUserId());
+        List<PackingList> lists = packingListDAO.getPackingListsByUser(currentUser.getUserId());
         
         if (lists.isEmpty()) {
             JLabel emptyLabel = new JLabel("No packing lists yet. Create your first one!");
@@ -187,7 +187,7 @@ public class MyListsView extends JFrame {
         progressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         
         // Weather info if destination is set
-        if (!list.getDestination() && list.getDestination() != null) {
+        if (list.getDestination() != null && !list.getDestination().isEmpty) {
             JPanel weatherPanel = createWeatherPanel((String) list.getDestination());
             if (weatherPanel != null) {
                 card.add(topPanel);

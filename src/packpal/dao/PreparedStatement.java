@@ -4,6 +4,8 @@
  */
 package packpal.dao;
 
+import java.sql.ResultSet;
+
 /**
  *
  * @author cindy
@@ -24,6 +26,14 @@ class PreparedStatement {
     }
 
     int executeUpdate() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    ResultSet getGeneratedKeys() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    ResultSet executeQuery() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 

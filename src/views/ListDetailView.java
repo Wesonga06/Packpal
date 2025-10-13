@@ -218,7 +218,7 @@ public class ListDetailView extends JFrame {
         itemsPanel.removeAll();
         
         // Refresh the packing list from database
-        packingList = (PackingList) dao.getPackingListById(packingList.getListId());
+        packingList = dao.getPackingListById(packingList.getListId());
         List<Item> items = packingList.getItems();
         
         // Update progress
