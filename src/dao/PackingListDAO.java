@@ -2,12 +2,12 @@ package dao;
 
 import models.PackingList;
 import models.PackingProgress;
+import models.Item;
 import database.DatabaseConfig;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import models.Item;
 
 public class PackingListDAO {
 
@@ -32,7 +32,6 @@ public class PackingListDAO {
 
                 pstmt.executeUpdate();
 
-                // Retrieve generated ID
                 try (ResultSet rs = pstmt.getGeneratedKeys()) {
                     if (rs.next()) {
                         return rs.getInt(1);
@@ -76,6 +75,33 @@ public class PackingListDAO {
         return lists;
     }
 
+    // 🟩 Retrieve a single packing list by its ID
+    public PackingList getPackingListById(int listId) {
+        String sql = "SELECT * FROM packing_lists WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, listId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new PackingList(
+                        rs.getInt("id"),
+                        rs.getInt("user_id"),
+                        rs.getString("list_name"),
+                        rs.getString("description"),
+                        rs.getString("destination"),
+                        rs.getDate("start_date"),
+                        rs.getDate("end_date"),
+                        rs.getString("trip_type")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Error getting packing list by ID: " + e.getMessage());
+        }
+        return null;
+    }
+
     // 🟩 Retrieve packing progress for a given list
     public PackingProgress getPackingProgress(int listId) {
         String sql = """
@@ -104,7 +130,56 @@ public class PackingListDAO {
         return new PackingProgress(0, 0);
     }
 
-    // 🟩 Delete a packing list by its ID
+    // 🟩 Add an item to a list
+    public boolean addItem(Item item) {
+        String sql = "INSERT INTO packing_items (list_id, item_name, category, packed, priority, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, item.getListId());
+            pstmt.setString(2, item.getItemName());
+            pstmt.setString(3, item.getCategory());
+            pstmt.setBoolean(4, item.isPacked());
+            pstmt.setInt(5, item.getPriority());
+            pstmt.setTimestamp(6, item.getCreatedAt());
+
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("❌ Error adding item: " + e.getMessage());
+        }
+        return false;
+    }
+
+    // 🟩 Update packed status of an item
+    public void updateItemPackedStatus(int itemId, boolean packed) {
+        String sql = "UPDATE packing_items SET packed = ? WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setBoolean(1, packed);
+            pstmt.setInt(2, itemId);
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error updating packed status: " + e.getMessage());
+        }
+    }
+
+    // 🟩 Delete an item by ID
+    public void deleteItem(int itemId) {
+        String sql = "DELETE FROM packing_items WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, itemId);
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error deleting item: " + e.getMessage());
+        }
+    }
+
+    // 🟩 Delete a packing list by ID
     public boolean deletePackingList(int listId) {
         String sql = "DELETE FROM packing_lists WHERE id = ?";
 
@@ -118,27 +193,10 @@ public class PackingListDAO {
         } catch (SQLException e) {
             System.err.println("❌ Error deleting packing list: " + e.getMessage());
         }
-
         return false;
     }
 
-    public void deleteItem(int itemId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public void updateItemPackedStatus(int itemId, boolean selected) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public boolean addItem(Item item) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
     public List<PackingList> getPackingListsByUser(int userId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public PackingList getPackingListById(int listId) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
