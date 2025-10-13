@@ -6,7 +6,6 @@ import dao.PackingListDAO;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.Date;
-import java.time.LocalDate;
 
 public class CreateListDialog extends JDialog {
     private static final Color PRIMARY_BLUE = new Color(70, 160, 255);
@@ -44,6 +43,10 @@ public class CreateListDialog extends JDialog {
         // Trip name
         JLabel nameLabel = createLabel("Trip name (e.g. Weekend Getaway)");
         listNameField = createTextField();
+        
+        // Description
+        JLabel descriptionLabel = createLabel("Description");
+        descriptionField = createTextField();
         
         // Destination
         JLabel destinationLabel = createLabel("Destination");
@@ -86,6 +89,10 @@ public class CreateListDialog extends JDialog {
         mainPanel.add(nameLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         mainPanel.add(listNameField);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        mainPanel.add(descriptionLabel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        mainPanel.add(descriptionField);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         mainPanel.add(destinationLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
@@ -154,7 +161,6 @@ public class CreateListDialog extends JDialog {
     
     private void generateList() {
         String listName = listNameField.getText().trim();
-        
         if (listName.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                 "Please enter a trip name.",
@@ -169,16 +175,13 @@ public class CreateListDialog extends JDialog {
         list.setDescription(descriptionField.getText().trim());
         list.setDestination(destinationField.getText().trim());
         
-        // Convert dates
         java.util.Date startDate = (java.util.Date) startDateSpinner.getValue();
         java.util.Date endDate = (java.util.Date) endDateSpinner.getValue();
         list.setStartDate(new Date(startDate.getTime()));
         list.setEndDate(new Date(endDate.getTime()));
-        
         list.setTripType(tripTypeCombo.getSelectedItem().toString());
         
         int listId = dao.createPackingList(list);
-        
         if (listId > 0) {
             JOptionPane.showMessageDialog(this,
                 "Packing list created successfully!",
