@@ -5,6 +5,7 @@ import models.PackingList;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import models.Item;
 
 public class PackingListDAO {
 
@@ -136,6 +137,18 @@ public class PackingListDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public boolean addItem(Item item) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public void deleteItem(int itemId) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public void updateItemPackedStatus(int itemId, boolean selected) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
 
