@@ -2,32 +2,16 @@ package models;
 
 import java.sql.Timestamp;
 
-/**
- * Represents a single item in a packing list.
- * Author: Cindy
- */
 public class Item {
     private int itemId;
     private int listId;
     private String itemName;
     private String category;
     private boolean isPacked;
-    private int priority; // Optional: 1 = high, 2 = medium, 3 = low
+    private int priority;
     private Timestamp createdAt;
 
-    // --- Constructors ---
-    public Item() {
-        // Empty constructor for DAO use
-    }
-
-    public Item(String itemName, String category, boolean isPacked) {
-        this.itemName = itemName;
-        this.category = category;
-        this.isPacked = isPacked;
-    }
-
-    public Item(int itemId, int listId, String itemName, String category, boolean isPacked, int priority, Timestamp createdAt) {
-        this.itemId = itemId;
+    public Item(int listId, String itemName, String category, boolean isPacked, int priority, Timestamp createdAt) {
         this.listId = listId;
         this.itemName = itemName;
         this.category = category;
@@ -36,74 +20,34 @@ public class Item {
         this.createdAt = createdAt;
     }
 
-    // --- Getters and Setters ---
+    public Item() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public int getListId() { return listId; }
+    public String getItemName() { return itemName; }
+    public String getCategory() { return category; }
+    public boolean isPacked() { return isPacked; }
+    public int getPriority() { return priority; }
+    public Timestamp getCreatedAt() { return createdAt; }
+
     public int getItemId() {
-        return itemId;
-    }
-
-    public void setItemId(int itemId) {
-        this.itemId = itemId;
-    }
-
-    public int getListId() {
-        return listId;
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     public void setListId(int listId) {
-        this.listId = listId;
-    }
-
-    public String getItemName() {
-        return itemName;
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     public void setItemName(String itemName) {
-        this.itemName = itemName;
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    public String getCategory() {
-        return category;
+    public void setCategory(String trim) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public boolean isPacked() {
-        return isPacked;
-    }
-
-    public void setPacked(boolean isPacked) {
-        this.isPacked = isPacked;
-    }
-
-    public int getPriority() {
-        return priority;
-    }
-
-    public void setPriority(int priority) {
-        this.priority = priority;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    // --- Utility ---
-    @Override
-    public String toString() {
-        return "Item{" +
-                "itemId=" + itemId +
-                ", listId=" + listId +
-                ", itemName='" + itemName + '\'' +
-                ", category='" + category + '\'' +
-                ", isPacked=" + isPacked +
-                ", priority=" + priority +
-                ", createdAt=" + createdAt +
-                '}';
+    public void setPacked(boolean b) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
