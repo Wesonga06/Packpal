@@ -10,32 +10,18 @@ public class DatabaseConfig {
     private static final String USER = "root";  // XAMPP default username
     private static final String PASSWORD = "";   // XAMPP default password is EMPTY
     
-    private static Connection connection = null;
     
     private DatabaseConfig() {}
     
     public static Connection getConnection() throws SQLException {
-        if (connection == null || connection.isClosed()) {
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver");
-                connection = DriverManager.getConnection(URL, USER, PASSWORD);
+                Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
                 System.out.println("✅ Database connected successfully!");
             } catch (ClassNotFoundException e) {
                 throw new SQLException("MySQL JDBC Driver not found", e);
             }
-        }
-        return connection;
-    }
-    
-    public static void closeConnection() {
-        if (connection != null) {
-            try {
-                connection.close();
-                System.out.println("Database connection closed.");
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+        return null;
     }
     
     public static boolean testConnection() {

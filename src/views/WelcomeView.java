@@ -8,7 +8,7 @@ import controllers.WelcomeController;
 import javax.swing.*;
 import java.awt.*;
 
-public class WelcomeView {
+public class WelcomeView extends JFrame {
     private WelcomeController controller;
 
     private static final Color PRIMARY_BLUE = new Color(70, 160, 255);
@@ -162,9 +162,9 @@ public class WelcomeView {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    private void setTitle(String packPal__Welcome) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
+    //private void setTitle(String packPal__Welcome) {
+       // throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    //}
 
     private void add(JPanel mainPanel) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
