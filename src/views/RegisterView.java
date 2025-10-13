@@ -1,6 +1,6 @@
-package packpal.views;
+package views;
 
-import packpal.dao.UserDAO;
+import dao.UserDAO;
 import javax.swing.*;
 import java.awt.*;
 

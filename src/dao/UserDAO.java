@@ -1,4 +1,4 @@
-package packpal.dao;
+package dao;
 
 import packpal.database.DatabaseConfig;
 import packpal.models.User;

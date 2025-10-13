@@ -1,11 +1,11 @@
-package packpal.views;
+package views;
 
-import packpal.models.User;
-import packpal.models.PackingList;
-import packpal.models.Item;
+import models.User;
+import models.PackingList;
+import models.Item;
 import packpal.dao.PackingListDAO;
-import packpal.services.WeatherService;
-import packpal.services.WeatherService.WeatherData;
+import services.WeatherService;
+import services.WeatherService.WeatherData;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;

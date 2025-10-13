@@ -1,4 +1,4 @@
-package packpal.services;
+package services;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
