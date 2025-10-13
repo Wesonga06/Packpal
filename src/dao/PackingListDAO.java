@@ -75,6 +75,11 @@ public class PackingListDAO {
         return lists;
     }
 
+    // ✅ Alias method for flexibility (same as getPackingListsByUserId)
+    public List<PackingList> getPackingListsByUser(int userId) {
+        return getPackingListsByUserId(userId);
+    }
+
     // 🟩 Retrieve a single packing list by its ID
     public PackingList getPackingListById(int listId) {
         String sql = "SELECT * FROM packing_lists WHERE id = ?";
@@ -195,9 +200,6 @@ public class PackingListDAO {
         }
         return false;
     }
-
-    public List<PackingList> getPackingListsByUser(int userId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
 }
+
 
