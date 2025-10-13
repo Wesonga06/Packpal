@@ -1,75 +1,109 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package models;
 
 import java.sql.Timestamp;
 
 /**
- *
- * @author cindy
- * 
+ * Represents a single item in a packing list.
+ * Author: Cindy
  */
-
-
 public class Item {
-    private String name;
-    private boolean isPacked;
+    private int itemId;
+    private int listId;
+    private String itemName;
     private String category;
-    
-    public Item(String name) {
-        this.name = name;
-        this.isPacked = false;
-    }
+    private boolean isPacked;
+    private int priority; // Optional: 1 = high, 2 = medium, 3 = low
+    private Timestamp createdAt;
 
+    // --- Constructors ---
     public Item() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-    
-    // Getters and setters
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    
-    public boolean isPacked() { return isPacked; }
-    public void setPacked(boolean packed) { isPacked = packed; }
-    
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
-
-    public void setItemName(String itemName) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        // Empty constructor for DAO use
     }
 
+    public Item(String itemName, String category, boolean isPacked) {
+        this.itemName = itemName;
+        this.category = category;
+        this.isPacked = isPacked;
+    }
+
+    public Item(int itemId, int listId, String itemName, String category, boolean isPacked, int priority, Timestamp createdAt) {
+        this.itemId = itemId;
+        this.listId = listId;
+        this.itemName = itemName;
+        this.category = category;
+        this.isPacked = isPacked;
+        this.priority = priority;
+        this.createdAt = createdAt;
+    }
+
+    // --- Getters and Setters ---
     public int getItemId() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return itemId;
     }
 
-    public String getItemName() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public void setListId(int listId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void setItemId(int itemId) {
+        this.itemId = itemId;
     }
 
     public int getListId() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return listId;
+    }
+
+    public void setListId(int listId) {
+        this.listId = listId;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public boolean isPacked() {
+        return isPacked;
+    }
+
+    public void setPacked(boolean isPacked) {
+        this.isPacked = isPacked;
     }
 
     public int getPriority() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return priority;
     }
 
-    public void setItemId(int aInt) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void setPriority(int priority) {
+        this.priority = priority;
     }
 
-    public void setPriority(int aInt) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public Timestamp getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreatedAt(Timestamp timestamp) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    // --- Utility ---
+    @Override
+    public String toString() {
+        return "Item{" +
+                "itemId=" + itemId +
+                ", listId=" + listId +
+                ", itemName='" + itemName + '\'' +
+                ", category='" + category + '\'' +
+                ", isPacked=" + isPacked +
+                ", priority=" + priority +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }
