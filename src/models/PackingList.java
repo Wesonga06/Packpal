@@ -73,6 +73,11 @@ public class PackingList {
         return packedItemsCount;
     }
     
+    public int getPackingPercentage(){
+        if(totalItems == 0) return 0;
+        return (int) ((packedItemsCount * 100.0) / totalItems);
+    }
+    
     public String getDestination(){
         return destination;
     }

@@ -181,18 +181,18 @@ public class CreateListDialog extends JDialog {
         list.setEndDate(new Date(endDate.getTime()));
         list.setTripType(tripTypeCombo.getSelectedItem().toString());
         
-        int listId = dao.createPackingList(list);
-        if (listId > 0) {
+        boolean success = dao.createPackingList(list);
+        if (success) {
             JOptionPane.showMessageDialog(this,
-                "Packing list created successfully!",
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE);
+                    "Packing list created successfully!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
             dispose();
         } else {
             JOptionPane.showMessageDialog(this,
-                "Failed to create packing list.",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
+                    "Failed to create packing list.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 }
