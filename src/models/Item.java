@@ -11,10 +11,15 @@ public class Item {
     private int priority;
     private Timestamp createdAt;
 
-    // Full constructor
-    public Item(int itemId, int listId, String itemName, String category,
-                boolean packed, int priority, Timestamp createdAt) {
-        this.itemId = itemId;
+    // ===============================
+    // Constructors
+    // ===============================
+
+    public Item() {
+        // Default constructor
+    }
+
+    public Item(int listId, String itemName, String category, boolean packed, int priority, Timestamp createdAt) {
         this.listId = listId;
         this.itemName = itemName;
         this.category = category;
@@ -23,85 +28,70 @@ public class Item {
         this.createdAt = createdAt;
     }
 
-    // Constructor for new item before inserting to DB
-    public Item(int listId, String itemName, String category, boolean packed,
-                int priority, Timestamp createdAt) {
-        this.listId = listId;
-        this.itemName = itemName;
-        this.category = category;
-        this.packed = packed;
-        this.priority = priority;
-        this.createdAt = createdAt;
-    }
+    // ===============================
+    // Getters and Setters
+    // ===============================
 
-    // Empty constructor
-    public Item() {}
-
-    // ===========================
-    // Getters
-    // ===========================
     public int getItemId() {
         return itemId;
+    }
+
+    public void setItemId(int itemId) {
+        this.itemId = itemId;
     }
 
     public int getListId() {
         return listId;
     }
 
-    public String getItemName() {
-        return itemName;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public boolean isPacked() {
-        return packed;
-    }
-
-    public int getPriority() {
-        return priority;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    // ===========================
-    // Setters
-    // ===========================
-    public void setItemId(int itemId) {
-        this.itemId = itemId;
-    }
-
     public void setListId(int listId) {
         this.listId = listId;
+    }
+
+    public String getItemName() {
+        return itemName;
     }
 
     public void setItemName(String itemName) {
         this.itemName = itemName;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public boolean isPacked() {
+        return packed;
     }
 
     public void setPacked(boolean packed) {
         this.packed = packed;
     }
 
+    public int getPriority() {
+        return priority;
+    }
+
     public void setPriority(int priority) {
         this.priority = priority;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
     }
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
     }
 
-    // ===========================
-    // Utility
-    // ===========================
+    // ===============================
+    // Utility Methods (Optional)
+    // ===============================
+
     @Override
     public String toString() {
         return "Item{" +
