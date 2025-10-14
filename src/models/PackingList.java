@@ -1,108 +1,126 @@
 package models;
 
 import java.sql.Date;
-import java.util.List;
 
 public class PackingList {
-    private int listId;
-    private int userId;
+    private int id;
     private String listName;
     private String description;
-    private String destination;
     private Date startDate;
     private Date endDate;
+    private String destination;
     private String tripType;
-    private List<Item> items; // optional — if you want to hold related items
+    private int userId;
+    private int totalItems;
+    private int listId;
+    private int packedItemsCount;
 
-    // 🟩 Full constructor
-    public PackingList(int listId, int userId, String listName, String description,
-                       String destination, Date startDate, Date endDate, String tripType) {
-        this.listId = listId;
-        this.userId = userId;
-        this.listName = listName;
-        this.description = description;
-        this.destination = destination;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.tripType = tripType;
-    }
-
-    // 🟩 Constructor for new list (before inserting to DB)
-    public PackingList(int userId, String listName, String description,
-                       String destination, Date startDate, Date endDate, String tripType) {
-        this.userId = userId;
-        this.listName = listName;
-        this.description = description;
-        this.destination = destination;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.tripType = tripType;
-    }
-
-    // 🟩 Empty constructor
+    // ✅ Constructors
     public PackingList() {}
 
-    // ===========================
-    // Getters
-    // ===========================
-    public int getListId() { return listId; }
-    public int getUserId() { return userId; }
-    public String getListName() { return listName; }
-    public String getDescription() { return description; }
-    public String getDestination() { return destination; }
-    public Date getStartDate() { return startDate; }
-    public Date getEndDate() { return endDate; }
-    public String getTripType() { return tripType; }
-    public List<Item> getItems() { return items; }
-
-    // ===========================
-    // Setters
-    // ===========================
-    public void setListId(int listId) { this.listId = listId; }
-    public void setUserId(int userId) { this.userId = userId; }
-    public void setListName(String listName) { this.listName = listName; }
-    public void setDescription(String description) { this.description = description; }
-    public void setDestination(String destination) { this.destination = destination; }
-    public void setStartDate(Date startDate) { this.startDate = startDate; }
-    public void setEndDate(Date endDate) { this.endDate = endDate; }
-    public void setTripType(String tripType) { this.tripType = tripType; }
-    public void setItems(List<Item> items) { this.items = items; }
-
-    // ===========================
-    // Utility Methods
-    // ===========================
-    public int getPackedItemsCount() {
-        if (items == null || items.isEmpty()) return 0;
-        return (int) items.stream().filter(Item::isPacked).count();
+    public PackingList(int id, String listName, String description, Date startDate, Date endDate, String tripType, int userId) {
+        this.id = id;
+        this.listName = listName;
+        this.description = description;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.tripType = tripType;
+        this.userId = userId;
     }
 
-    public int getTotalItemsCount() {
-        return (items == null) ? 0 : items.size();
+    // ✅ Getters
+    public int getId() {
+        return id;
     }
 
-    public int getPackingPercentage() {
-        int total = getTotalItemsCount();
-        if (total == 0) return 0;
-        return (int) ((getPackedItemsCount() / (double) total) * 100);
+    public String getListName() {
+        return listName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+    
+    public int getListId(){
+        return listId;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+    
+    public String destination() {
+    return destination;
+}
+
+    public String getTripType() {
+        return tripType;
+    }
+
+    public int getUserId() {
+        return userId;
     }
 
     public int getTotalItems() {
-        return getTotalItemsCount();
+        return totalItems;
     }
 
-    @Override
-    public String toString() {
-        return "PackingList{" +
-                "listId=" + listId +
-                ", userId=" + userId +
-                ", listName='" + listName + '\'' +
-                ", destination='" + destination + '\'' +
-                ", startDate=" + startDate +
-                ", endDate=" + endDate +
-                ", tripType='" + tripType + '\'' +
-                '}';
+    public int getPackedItemsCount() {
+        return packedItemsCount;
+    }
+    
+    public String getDestination(){
+        return destination;
+    }
+
+    // ✅ Setters
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setListName(String listName) {
+        this.listName = listName;
+    }
+
+    // 👇 Add these newly requested methods
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+    
+    public void setDestination(String destination){
+        this.destination = destination;
+    }
+
+    public void setTripType(String tripType) {
+        this.tripType = tripType;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+    
+    public void setListId(int listId){
+        this.listId = listId;
+    }
+
+    public void setTotalItems(int totalItems) {
+        this.totalItems = totalItems;
+    }
+
+    public void setPackedItemsCount(int packedItemsCount) {
+        this.packedItemsCount = packedItemsCount;
     }
 }
-
-
 

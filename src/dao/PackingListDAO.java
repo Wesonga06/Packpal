@@ -30,11 +30,10 @@ public class PackingListDAO {
             stmt.setString(7, list.getTripType());
 
             int rowsInserted = stmt.executeUpdate();
-
             if (rowsInserted > 0) {
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
                     if (rs.next()) {
-                        return rs.getInt(1); // return new list_id
+                        return rs.getInt(1);
                     }
                 }
             }
@@ -64,6 +63,13 @@ public class PackingListDAO {
                     list.setStartDate(rs.getDate("start_date"));
                     list.setEndDate(rs.getDate("end_date"));
                     list.setTripType(rs.getString("trip_type"));
+
+                    // --- NEW: Calculate and attach progress stats ---
+                    int total = getTotalItemsCount(list.getListId());
+                    int packed = getPackedItemsCount(list.getListId());
+                    list.setTotalItems(total);
+                    list.setPackedItemsCount(packed);
+
                     lists.add(list);
                 }
             }
@@ -93,6 +99,10 @@ public class PackingListDAO {
                     list.setStartDate(rs.getDate("start_date"));
                     list.setEndDate(rs.getDate("end_date"));
                     list.setTripType(rs.getString("trip_type"));
+
+                    // --- Include live progress stats ---
+                    list.setTotalItems(getTotalItemsCount(listId));
+                    list.setPackedItemsCount(getPackedItemsCount(listId));
                 }
             }
 
@@ -181,7 +191,7 @@ public class PackingListDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return -1; // Not found
+        return -1;
     }
 
     public boolean updateItemCategory(int itemId, String newCategory) {
@@ -253,5 +263,44 @@ public class PackingListDAO {
         }
         return items;
     }
-}
 
+    // ===========================
+    // NEW METHODS
+    // ===========================
+
+    /** Get total number of items in a list */
+    public int getTotalItemsCount(int listId) {
+        String sql = "SELECT COUNT(*) AS total FROM items WHERE list_id=?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, listId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /** Get number of packed items in a list */
+    public int getPackedItemsCount(int listId) {
+        String sql = "SELECT COUNT(*) AS packed FROM items WHERE list_id=? AND packed=TRUE";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, listId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("packed");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+}
