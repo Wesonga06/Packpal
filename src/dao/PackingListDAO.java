@@ -12,7 +12,7 @@ public class PackingListDAO {
 
     // ✅ Create new packing list
     public boolean createPackingList(PackingList list) {
-        String sql = "INSERT INTO packing_list (user_id, destination, description, start_date, end_date, trip_type) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO packing_lists (user_id, destination, description, start_date, end_date, trip_type) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -23,7 +23,6 @@ public class PackingListDAO {
             stmt.setDate(4, list.getStartDate());
             stmt.setDate(5, list.getEndDate());
             stmt.setString(6, list.getTripType());
-            stmt.setString(7, list.getListName());
 
           int rowsInserted = stmt.executeUpdate();
           return rowsInserted > 0;
@@ -39,13 +38,13 @@ public class PackingListDAO {
     // ✅ Get all packing lists for a specific user
     public List<PackingList> getPackingListsByUser(int userId) {
         List<PackingList> lists = new ArrayList<>();
-        String sql = "SELECT * FROM packing_list WHERE user_id = ?";
+        String sql = "SELECT * FROM packing_lists WHERE user_id = ?";
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, userId);
-            try (ResultSet rs = stmt.executeQuery()) {
+            ResultSet rs = stmt.executeQuery();
 
                 while (rs.next()) {
                     PackingList list = new PackingList();
@@ -56,24 +55,25 @@ public class PackingListDAO {
                     list.setStartDate(rs.getDate("start_date"));
                     list.setEndDate(rs.getDate("end_date"));
                     list.setTripType(rs.getString("trip_type"));
-
-                    // Get item counts
-                    list.setTotalItems(getTotalItems(list.getListId()));
-                    list.setPackedItemsCount(getPackedItemsCount(list.getListId()));
-
                     lists.add(list);
                 }
-            }
+
+                   rs.close();
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        return lists;
+         for(PackingList list : lists){
+        int total = getTotalItemsCount(list.getListId());
+        int packed = getPackedItemsCount(list.getListId());
+        list.setTotalItems(total);
+        list.setPackedItemsCount(packed);
     }
+         return lists;
+}
 
     // ✅ Get total number of items in a list
-    public int getTotalItems(int listId) {
+    public int getTotalItemsCount(int listId) {
         String sql = "SELECT COUNT(*) AS total FROM items WHERE list_id = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -177,7 +177,7 @@ public class PackingListDAO {
 
     // ✅ Delete packing list
     public boolean deletePackingList(int listId) {
-        String sql = "DELETE FROM packing_list WHERE list_id = ?";
+        String sql = "DELETE FROM packing_lists WHERE list_id = ?";
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -196,7 +196,4 @@ public class PackingListDAO {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    public int getTotalItemsCount(int listId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
 }

@@ -19,8 +19,8 @@ public class CreateListDialog extends JDialog {
     private JSpinner endDateSpinner;
     private JComboBox<String> tripTypeCombo;
     
-    public CreateListDialog(JFrame parent, User user) {
-        super(parent, "Create New List", true);
+    public CreateListDialog(User user) {
+        super((JFrame)parent, "Create New List", true);
         this.currentUser = user;
         this.dao = new PackingListDAO();
         initUI();

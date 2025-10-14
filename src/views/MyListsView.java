@@ -1,341 +1,145 @@
 package views;
 
-import models.User;
-import models.PackingList;
 import dao.PackingListDAO;
-import services.WeatherService;
-import services.WeatherService.WeatherData;
+import models.PackingList;
+import models.User;
+
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.*;
 import java.util.List;
 
 public class MyListsView extends JFrame {
-    private static final Color PRIMARY_BLUE = new Color(70, 160, 255);
-    private User currentUser;
-    private PackingListDAO packingListDAO;
-    private WeatherService weatherService;
-    private JPanel listsPanel;
-    private JTabbedPane tabbedPane;
+
+    private User user;
+    private JTable table;
+    private DefaultTableModel tableModel;
+    private JButton btnAdd, btnView, btnDelete, btnRefresh;
+    private List<PackingList> lists;
 
     public MyListsView(User user) {
-        this.currentUser = user;
-        this.packingListDAO = new PackingListDAO();
-        this.weatherService = new WeatherService();
+        this.user = user;
+        setTitle("My Packing Lists");
+        setSize(800, 500);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
         initializeUI();
         loadLists();
     }
 
     private void initializeUI() {
-        setTitle("PackPal - My Lists");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(450, 700);
-        setLocationRelativeTo(null);
-        setResizable(false);
+        // ✅ Table model setup
+        String[] columnNames = {"List ID", "Destination", "Start Date", "End Date", "Trip Type", "Items Packed"};
+        tableModel = new DefaultTableModel(columnNames, 0);
+        table = new JTable(tableModel);
+        table.setFillsViewportHeight(true);
+        table.setRowHeight(25);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(Color.WHITE);
+        JScrollPane scrollPane = new JScrollPane(table);
 
-        // Header with tabs
-        JPanel headerPanel = createHeader();
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        // ✅ Buttons setup
+        btnAdd = new JButton("➕ Add New List");
+        btnView = new JButton("👁️ View Details");
+        btnDelete = new JButton("🗑️ Delete");
+        btnRefresh = new JButton("🔄 Refresh");
 
-        // Tabbed content
-        tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("Arial", Font.BOLD, 14));
-        tabbedPane.setForeground(Color.DARK_GRAY);
-        tabbedPane.setBackground(Color.WHITE);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(btnAdd);
+        buttonPanel.add(btnView);
+        buttonPanel.add(btnDelete);
+        buttonPanel.add(btnRefresh);
 
-        // Lists content
-        listsPanel = new JPanel();
-        listsPanel.setLayout(new BoxLayout(listsPanel, BoxLayout.Y_AXIS));
-        listsPanel.setBackground(Color.WHITE);
-        listsPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        add(scrollPane, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.SOUTH);
 
-        JScrollPane listsScrollPane = new JScrollPane(listsPanel);
-        listsScrollPane.setBorder(null);
-        listsScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        // ✅ Button actions
+        btnAdd.addActionListener(e -> openCreateList());
+        btnView.addActionListener(e -> openSelectedList());
+        btnDelete.addActionListener(e -> deleteSelectedList());
+        btnRefresh.addActionListener(e -> loadLists());
 
-        // Templates & Shared tabs
-        JScrollPane templatesScrollPane = new JScrollPane(createTemplatesPanel());
-        templatesScrollPane.setBorder(null);
-
-        JPanel sharedPanel = createSharedPanel();
-
-        tabbedPane.addTab("Recent", listsScrollPane);
-        tabbedPane.addTab("Templates", templatesScrollPane);
-        tabbedPane.addTab("Shared", sharedPanel);
-
-        mainPanel.add(tabbedPane, BorderLayout.CENTER);
-
-        // Floating action button
-        JLayeredPane layeredPane = new JLayeredPane();
-        layeredPane.setPreferredSize(new Dimension(450, 700));
-        layeredPane.add(mainPanel);
-        mainPanel.setBounds(0, 0, 450, 700);
-
-        JButton fabButton = createFAB();
-        fabButton.setBounds(370, 600, 60, 60);
-        layeredPane.add(fabButton, JLayeredPane.PALETTE_LAYER);
-
-        add(layeredPane);
-    }
-
-    private JPanel createHeader() {
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(PRIMARY_BLUE);
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-
-        JLabel titleLabel = new JLabel("My Lists");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setForeground(Color.WHITE);
-
-        JButton settingsButton = new JButton("⚙️");
-        settingsButton.setFont(new Font("Arial", Font.PLAIN, 18));
-        settingsButton.setBorderPainted(false);
-        settingsButton.setContentAreaFilled(false);
-        settingsButton.setFocusPainted(false);
-        settingsButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        settingsButton.addActionListener(e -> openSettings());
-
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        rightPanel.setOpaque(false);
-        rightPanel.add(settingsButton);
-
-        headerPanel.add(titleLabel, BorderLayout.WEST);
-        headerPanel.add(rightPanel, BorderLayout.EAST);
-
-        return headerPanel;
+        // ✅ Double-click to open details
+        table.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && table.getSelectedRow() != -1) {
+                    openSelectedList();
+                }
+            }
+        });
     }
 
     private void loadLists() {
-        listsPanel.removeAll();
-
-        List<PackingList> lists = packingListDAO.getPackingListsByUser(currentUser.getUserId());
-
-        if (lists.isEmpty()) {
-            JLabel emptyLabel = new JLabel("No packing lists yet. Create your first one!");
-            emptyLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-            emptyLabel.setForeground(Color.GRAY);
-            emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            emptyLabel.setBorder(BorderFactory.createEmptyBorder(50, 20, 20, 20));
-            listsPanel.add(emptyLabel);
-        } else {
-            for (PackingList list : lists) {
-                // Refresh each list’s packed items count before showing
-                list.setPackedItemsCount(packingListDAO.getPackedItemsCount(list.getListId()));
-                list.setTotalItems(packingListDAO.getTotalItemsCount(list.getListId()));
-                listsPanel.add(createListCard(list));
-                listsPanel.add(Box.createRigidArea(new Dimension(0, 15)));
-            }
-        }
-
-        listsPanel.revalidate();
-        listsPanel.repaint();
-    }
-
-    private JPanel createListCard(PackingList list) {
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true),
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
-        ));
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
-        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setOpaque(false);
-
-        JLabel titleLabel = new JLabel(list.getListName());
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        titleLabel.setForeground(Color.BLACK);
-
-        JLabel arrowLabel = new JLabel("→");
-        arrowLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        arrowLabel.setForeground(Color.GRAY);
-
-        topPanel.add(titleLabel, BorderLayout.WEST);
-        topPanel.add(arrowLabel, BorderLayout.EAST);
-
-        JLabel infoLabel = new JLabel(
-            list.getTotalItems() + " items • " +
-            (list.getDestination() != null ? list.getDestination() : "No destination")
-        );
-        infoLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        infoLabel.setForeground(Color.GRAY);
-        infoLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
-
-        // Progress bar showing packed items
-        JProgressBar progressBar = new JProgressBar(0, list.getTotalItems() == 0 ? 1 : list.getTotalItems());
-        progressBar.setValue(list.getPackedItemsCount());
-        progressBar.setStringPainted(true);
-        progressBar.setString(list.getPackedItemsCount() + " of " + list.getTotalItems() + " items packed");
-        progressBar.setFont(new Font("Arial", Font.PLAIN, 11));
-        progressBar.setForeground(PRIMARY_BLUE);
-        progressBar.setBackground(new Color(230, 230, 230));
-        progressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
-
-        // Weather section
-        if (list.getDestination() != null && !list.getDestination().isEmpty()) {
-            JPanel weatherPanel = createWeatherPanel(list.getDestination());
-            if (weatherPanel != null) {
-                card.add(topPanel);
-                card.add(infoLabel);
-                card.add(weatherPanel);
-                card.add(Box.createRigidArea(new Dimension(0, 10)));
-                card.add(progressBar);
-            } else {
-                card.add(topPanel);
-                card.add(infoLabel);
-                card.add(progressBar);
-            }
-        } else {
-            card.add(topPanel);
-            card.add(infoLabel);
-            card.add(progressBar);
-        }
-
-        card.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                openListDetails(list);
-            }
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                card.setBackground(new Color(248, 248, 248));
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                card.setBackground(Color.WHITE);
-            }
-        });
-
-        return card;
-    }
-
-    private JPanel createWeatherPanel(String destination) {
         try {
-            WeatherData weather = weatherService.getCurrentWeather(destination);
-            if (weather != null) {
-                JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-                panel.setOpaque(false);
-                panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
+            PackingListDAO packingListDAO = new PackingListDAO();
+            lists = packingListDAO.getPackingListsByUser(user.getUserId());
 
-                JLabel weatherLabel = new JLabel(
-                    weather.getWeatherEmoji() + " " +
-                    String.format("%.1f°C", weather.getTemperature()) + " • " +
-                    weather.getDescription()
-                );
-                weatherLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-                weatherLabel.setForeground(new Color(50, 50, 50));
-
-                panel.add(weatherLabel);
-                return panel;
+            tableModel.setRowCount(0); // clear table
+            for (PackingList list : lists) {
+                Object[] row = {
+                    list.getListId(),
+                    list.getDestination(),
+                    list.getStartDate(),
+                    list.getEndDate(),
+                    list.getTripType(),
+                    list.getPackedItemsCount() + " / " + list.getTotalItems()
+                };
+                tableModel.addRow(row);
             }
-        } catch (Exception e) {
-            // ignore errors fetching weather
+
+            System.out.println("✅ Loaded " + lists.size() + " packing lists for user " + user.getName());
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error loading lists: " + ex.getMessage());
         }
-        return null;
     }
 
-    private JPanel createTemplatesPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+    private void openCreateList() {
+        new CreateListDialog(user).setVisible(true);
+        this.dispose();
+    }
 
-        String[] templates = {
-            "Weekend Getaway", "Business Trip Template",
-            "Beach Vacation", "Camping Essentials"
-        };
-
-        for (String template : templates) {
-            panel.add(createTemplateCard(template));
-            panel.add(Box.createRigidArea(new Dimension(0, 12)));
+    private void openSelectedList() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a list to view.");
+            return;
         }
 
-        return panel;
+        PackingList selectedList = lists.get(selectedRow);
+        new ListDetailView(user, selectedList).setVisible(true);
+        this.dispose();
     }
 
-    private JPanel createTemplateCard(String name) {
-        JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true),
-            BorderFactory.createEmptyBorder(12, 15, 12, 15)
-        ));
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    private void deleteSelectedList() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a list to delete.");
+            return;
+        }
 
-        JLabel nameLabel = new JLabel(name);
-        nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this list?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                int listId = (int) tableModel.getValueAt(selectedRow, 0);
+                PackingListDAO dao = new PackingListDAO();
+                boolean deleted = dao.deletePackingList(listId);
 
-        JLabel arrowLabel = new JLabel("→");
-        arrowLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        arrowLabel.setForeground(Color.GRAY);
-
-        card.add(nameLabel, BorderLayout.WEST);
-        card.add(arrowLabel, BorderLayout.EAST);
-
-        card.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                useTemplate(name);
+                if (deleted) {
+                    JOptionPane.showMessageDialog(this, "List deleted successfully.");
+                    loadLists();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to delete the list.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error deleting list: " + e.getMessage());
             }
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                card.setBackground(new Color(248, 248, 248));
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                card.setBackground(Color.WHITE);
-            }
-        });
-
-        return card;
+        }
     }
 
-    private JPanel createSharedPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(Color.WHITE);
-
-        JLabel label = new JLabel("No shared lists yet");
-        label.setFont(new Font("Arial", Font.PLAIN, 14));
-        label.setForeground(Color.GRAY);
-        label.setAlignmentX(Component.CENTER_ALIGNMENT);
-        label.setBorder(BorderFactory.createEmptyBorder(50, 20, 20, 20));
-
-        panel.add(label);
-        return panel;
-    }
-
-    private JButton createFAB() {
-        JButton fab = new JButton("+");
-        fab.setFont(new Font("Arial", Font.BOLD, 32));
-        fab.setForeground(Color.WHITE);
-        fab.setBackground(PRIMARY_BLUE);
-        fab.setFocusPainted(false);
-        fab.setBorderPainted(false);
-        fab.setOpaque(true);
-        fab.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        fab.addActionListener(e -> createNewList());
-        return fab;
-    }
-
-    private void createNewList() {
-        new CreateListDialog(this, currentUser).setVisible(true);
-        loadLists();
-    }
-
-    private void openListDetails(PackingList list) {
-        new ListDetailView(currentUser, list).setVisible(true);
-        dispose(); // close current window to prevent stacking
-    }
-
-    private void useTemplate(String templateName) {
-        JOptionPane.showMessageDialog(this,
-            "Creating list from template: " + templateName,
-            "Template",
-            JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void openSettings() {
-        new SettingsView(currentUser).setVisible(true);
-    }
+  
 }
+
