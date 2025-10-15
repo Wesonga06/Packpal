@@ -9,7 +9,7 @@ import views.components.ShadowPanel;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.AlphaComposite;
+import java.awt.AlphaComposite;  // Explicit import for AlphaComposite
 
 public class WelcomeView extends JFrame {
     private WelcomeController controller;
@@ -153,7 +153,7 @@ public class WelcomeView extends JFrame {
         Graphics g = bi.createGraphics();
         g.drawImage(image, 0, 0, null);
         g.setColor(tint);
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+        g.setColor(new Color(tint.getRed(), tint.getGreen(), tint.getBlue(), 128));
         g.fillRect(0, 0, bi.getWidth(), bi.getHeight());
         g.dispose();
         return bi;
