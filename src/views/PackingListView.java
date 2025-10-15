@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package views;
 
 import dao.PackingListDAO;
@@ -75,12 +71,22 @@ public class PackingListView extends JFrame {
         JPanel bottomPanel = new JPanel(new BorderLayout());
         RoundedButton saveBtn = new RoundedButton("Save", UIConstants.PRIMARY_BLUE);
         saveBtn.setPreferredSize(new Dimension(150, 50));
-        saveBtn.addActionListener(e -> saveChanges());
+        saveBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveChanges();
+            }
+        });
         JButton addBtn = new JButton("+ Add Item");
-        addBtn.setPreferredSize(new Dimension(150, 50);
+        addBtn.setPreferredSize(new Dimension(150, 50));
         addBtn.setBackground(UIConstants.PRIMARY_BLUE);
         addBtn.setForeground(Color.WHITE);
-        addBtn.addActionListener(e -> addNewItem());
+        addBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addNewItem();
+            }
+        });
         bottomPanel.add(saveBtn, BorderLayout.WEST);
         bottomPanel.add(addBtn, BorderLayout.EAST);
         mainPanel.add(bottomPanel, BorderLayout.SOUTH);
@@ -122,9 +128,12 @@ public class PackingListView extends JFrame {
         // Checkbox
         JCheckBox checkBox = new JCheckBox();
         checkBox.setSelected(item.isPacked());
-        checkBox.addActionListener(e -> {
-            item.setPacked(checkBox.isSelected());
-            updateProgressBar();
+        checkBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                item.setPacked(checkBox.isSelected());
+                updateProgressBar();
+            }
         });
         card.add(checkBox, BorderLayout.WEST);
 
@@ -144,14 +153,23 @@ public class PackingListView extends JFrame {
         editBtn.setForeground(UIConstants.PRIMARY_BLUE);
         editBtn.setFont(UIConstants.BODY_FONT.deriveFont(12f));
         editBtn.setBorderPainted(false);
-        editBtn.addActionListener(e -> editItem(item));  // Prompt for edit
+        editBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                editItem(item);
+            }
+        });
         JButton deleteBtn = new JButton("Delete");
         deleteBtn.setContentAreaFilled(false);
         deleteBtn.setForeground(Color.RED);
         deleteBtn.setFont(UIConstants.BODY_FONT.deriveFont(12f));
         deleteBtn.setBorderPainted(false);
-        deleteBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        deleteBtn.addActionListener(e -> deleteItem(item));
+        deleteBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                deleteItem(item);
+            }
+        });
         actionPanel.add(editBtn);
         actionPanel.add(deleteBtn);
         card.add(actionPanel, BorderLayout.EAST);
@@ -160,9 +178,12 @@ public class PackingListView extends JFrame {
     }
 
     private void updateProgressBar() {
-        List<PackingListDAO.ListItem> items = dao.getListItems(listId);  // Reload for accuracy
+        List<PackingListDAO.ListItem> items = dao.getListItems(listId);
         int total = items.size();
-        int packed = (int) items.stream().filter(PackingListDAO.ListItem::isPacked).count();
+        int packed = 0;
+        for (PackingListDAO.ListItem item : items) {
+            if (item.isPacked()) packed++;
+        }
         progressBar.setMaximum(total);
         progressBar.setValue(packed);
         progressLabel.setText(packed + " of " + total + " items packed");
@@ -171,18 +192,18 @@ public class PackingListView extends JFrame {
     private void saveChanges() {
         List<PackingListDAO.ListItem> items = dao.getListItems(listId);
         for (PackingListDAO.ListItem item : items) {
-            dao.updateItemPacked(listId, item.getId(), item.isPacked());
+            dao.setItemPackedStatus(item.getId(), item.isPacked());
         }
         JOptionPane.showMessageDialog(this, "Changes saved!");
-        loadItemsAndProgress();  // Refresh
+        loadItemsAndProgress();
     }
 
     private void addNewItem() {
         String newItemName = JOptionPane.showInputDialog(this, "Enter new item name:");
         if (newItemName != null && !newItemName.trim().isEmpty()) {
-            // Add to DB (extend DAO with addItem method if needed; mock here)
-            // dao.addItem(listId, newItemName);  // Add this method to DAO
-            JOptionPane.showMessageDialog(this, "Item '" + newItemName + "' added!");
+            // Add to DB - Extend DAO with addItem if not present
+            // dao.addItem(listId, newItemName);
+            JOptionPane.showMessageDialog(this, "Item '" + newItemName + "' added! (Implement DAO.addItem)");
             loadItemsAndProgress();
         }
     }
@@ -190,9 +211,9 @@ public class PackingListView extends JFrame {
     private void editItem(PackingListDAO.ListItem item) {
         String newName = JOptionPane.showInputDialog(this, "Edit item name:", item.getName());
         if (newName != null && !newName.trim().isEmpty()) {
-            // Update in DB (extend DAO with updateItemName)
-            // dao.updateItemName(listId, item.getId(), newName);
             item.setName(newName);
+            // Update DB - Extend DAO with updateItemName
+            // dao.updateItemName(listId, item.getId(), newName);
             loadItemsAndProgress();
         }
     }
@@ -200,9 +221,9 @@ public class PackingListView extends JFrame {
     private void deleteItem(PackingListDAO.ListItem item) {
         int confirm = JOptionPane.showConfirmDialog(this, "Delete '" + item.getName() + "'?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            // Delete from DB (extend DAO with deleteItem)
+            // Delete from DB - Extend DAO with deleteItem
             // dao.deleteItem(listId, item.getId());
-            JOptionPane.showMessageDialog(this, "Item deleted!");
+            JOptionPane.showMessageDialog(this, "Item deleted! (Implement DAO.deleteItem)");
             loadItemsAndProgress();
         }
     }
