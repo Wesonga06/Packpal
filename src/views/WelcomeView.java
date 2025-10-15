@@ -1,148 +1,165 @@
 package views;
 
 import controllers.WelcomeController;
+import utils.UIConstants;
+import views.components.RoundedButton;
+import views.components.RoundedLabel;
+import views.components.ShadowPanel;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class WelcomeView extends JFrame {
     private WelcomeController controller;
-    private static final Color PRIMARY_BLUE = new Color(70, 160, 255);
+    private JPanel topBar;
+    private JLabel bagIcon;
+    private RoundedLabel titleLabel;
+    private JLabel subtitleLabel;
+    private RoundedButton getStartedButton;
+    private RoundedButton haveAccountButton;
+    private JPanel featuresPanel;
 
     public WelcomeView() {
         controller = new WelcomeController(this);
         initializeUI();
+        setTitle("PackPal");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
     }
 
     private void initializeUI() {
-        setTitle("PackPal - Welcome");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(450, 650);
-        setLocationRelativeTo(null);
-        setResizable(false);
+        setPreferredSize(new Dimension(375, 667));
+        setMinimumSize(new Dimension(350, 600));
+        setResizable(true);
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
+        // Top Bar
+        topBar = createTopBar("PackPal", false);
+        add(topBar, BorderLayout.NORTH);
+
+        // Main Panel
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBackground(Color.WHITE);
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 30, 30, 30));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-        centerPanel.setBackground(Color.WHITE);
-
-        RoundedLabel appTitleLabel = new RoundedLabel("PackPal");
-        appTitleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        appTitleLabel.setForeground(Color.WHITE);
-        appTitleLabel.setBackground(PRIMARY_BLUE);
-        appTitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        appTitleLabel.setMaximumSize(new Dimension(340, 55));
-        appTitleLabel.setPreferredSize(new Dimension(340, 55));
-        appTitleLabel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-
-        JLabel bagImage = new JLabel();
-        bagImage.setAlignmentX(Component.CENTER_ALIGNMENT);
-        bagImage.setBorder(BorderFactory.createEmptyBorder(35, 0, 25, 0));
+        // Pink Bag Icon
+        bagIcon = new JLabel();
+        bagIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
+        bagIcon.setBorder(BorderFactory.createEmptyBorder(40, 0, 20, 0));
         try {
-            ImageIcon icon = new ImageIcon(getClass().getResource("/packpal/assets/bag.JPEG"));
-            Image scaled = icon.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH);
-            bagImage.setIcon(new ImageIcon(scaled));
+            ImageIcon icon = new ImageIcon(getClass().getResource("/assets/bag.JPEG"));
+            Image pinkImage = tintImage(icon.getImage(), UIConstants.PINK_ACCENT);
+            Image scaled = pinkImage.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+            bagIcon.setIcon(new ImageIcon(scaled));
         } catch (Exception e) {
-            bagImage.setText("👜");
-            bagImage.setFont(new Font("Arial", Font.PLAIN, 72));
+            bagIcon.setText("👜");
+            bagIcon.setFont(new Font("Arial", Font.PLAIN, 80));
+            bagIcon.setForeground(UIConstants.PINK_ACCENT);
         }
+        mainPanel.add(bagIcon);
 
-        JLabel welcomeLabel = new JLabel("Welcome to PackPal", SwingConstants.CENTER);
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 22));
-        welcomeLabel.setForeground(Color.BLACK);
-        welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        welcomeLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        // Title & Subtitle
+        titleLabel = new RoundedLabel("Welcome to PackPal");
+        titleLabel.setFont(UIConstants.TITLE_FONT.deriveFont(24f));
+        titleLabel.setForeground(Color.BLACK);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mainPanel.add(titleLabel);
 
-        JLabel subtitleLabel = new JLabel(
-            "<html><div style='text-align: center;'>Never forget essential items again!<br>Create smart packing lists for any trip.</div></html>",
-            SwingConstants.CENTER
-        );
-        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        subtitleLabel = new JLabel("Never forget essential items again! Create smart packing lists for any trip.");
+        subtitleLabel.setFont(UIConstants.BODY_FONT);
         subtitleLabel.setForeground(Color.GRAY);
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        subtitleLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 40, 0));
+        subtitleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
+        mainPanel.add(subtitleLabel);
 
-        JButton getStartedButton = createRoundedBlueButton("Get Started");
-        getStartedButton.setMaximumSize(new Dimension(340, 50));
+        // Buttons
+        getStartedButton = new RoundedButton("Get Started", UIConstants.PRIMARY_BLUE);
         getStartedButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        getStartedButton.setPreferredSize(new Dimension(300, 50));
         getStartedButton.addActionListener(e -> controller.handleGetStarted());
+        mainPanel.add(getStartedButton);
 
-        JButton haveAccountButton = new JButton("I have an account") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(230, 230, 230));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        haveAccountButton.setOpaque(false);
-        haveAccountButton.setContentAreaFilled(false);
-        haveAccountButton.setForeground(Color.DARK_GRAY);
-        haveAccountButton.setFont(new Font("Arial", Font.BOLD, 16));
-        haveAccountButton.setFocusPainted(false);
-        haveAccountButton.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
-        haveAccountButton.setMaximumSize(new Dimension(340, 50));
+        haveAccountButton = new RoundedButton("I have an account", UIConstants.PRIMARY_BLUE, true);
         haveAccountButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        haveAccountButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        haveAccountButton.addActionListener(e -> controller.handleHaveAccount());
+        haveAccountButton.setPreferredSize(new Dimension(300, 50));
+        haveAccountButton.setBorder(BorderFactory.createEmptyBorder(12, 24, 12, 24));
+        haveAccountButton.addActionListener(e -> controller.handleLogin());
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        mainPanel.add(haveAccountButton);
 
-        centerPanel.add(Box.createVerticalGlue());
-        centerPanel.add(appTitleLabel);
-        centerPanel.add(bagImage);
-        centerPanel.add(welcomeLabel);
-        centerPanel.add(subtitleLabel);
-        centerPanel.add(getStartedButton);
-        centerPanel.add(Box.createRigidArea(new Dimension(0, 15)));
-        centerPanel.add(haveAccountButton);
-        centerPanel.add(Box.createVerticalGlue());
+        // Feature Highlights
+        featuresPanel = createFeaturesPanel();
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        mainPanel.add(featuresPanel);
 
-        mainPanel.add(centerPanel, BorderLayout.CENTER);
-        add(mainPanel);
+        add(mainPanel, BorderLayout.CENTER);
     }
 
-    private JButton createRoundedBlueButton(String text) {
-        JButton button = new JButton(text) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(PRIMARY_BLUE);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        button.setOpaque(false);
-        button.setContentAreaFilled(false);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, 16));
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        return button;
-    }
-
-    class RoundedLabel extends JLabel {
-        public RoundedLabel(String text) {
-            super(text, SwingConstants.CENTER);
-            setOpaque(false);
+    private JPanel createTopBar(String title, boolean showBack) {
+        JPanel bar = new JPanel(new BorderLayout());
+        bar.setBackground(UIConstants.PRIMARY_BLUE);
+        bar.setPreferredSize(new Dimension(375, 60));
+        RoundedLabel appTitle = new RoundedLabel(title);
+        appTitle.setForeground(Color.WHITE);
+        appTitle.setFont(UIConstants.TITLE_FONT.deriveFont(18f));
+        bar.add(appTitle, BorderLayout.CENTER);
+        if (showBack) {
+            JButton back = new JButton("← Back");
+            back.setForeground(Color.WHITE);
+            back.setContentAreaFilled(false);
+            back.setBorderPainted(false);
+            back.setFocusPainted(false);
+            back.addActionListener(e -> {
+                new WelcomeView();
+                dispose();
+            });
+            bar.add(back, BorderLayout.WEST);
         }
+        return bar;
+    }
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(getBackground());
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-            g2.dispose();
-            super.paintComponent(g);
+    private JPanel createFeaturesPanel() {
+        JPanel panel = new JPanel(new GridLayout(3, 1, 0, 10));
+        panel.setOpaque(false);
+        panel.setBorder(BorderFactory.createEmptyBorder(0, 25, 0, 25));
+        String[] features = {
+            "• Smart packing lists tailored to your trip",
+            "• Weather-based suggestions for essentials",
+            "• Easy sharing and exporting options"
+        };
+        for (String feature : features) {
+            ShadowPanel card = new ShadowPanel(new BorderLayout());
+            card.setPreferredSize(new Dimension(300, 60));
+            JLabel label = new JLabel(feature);
+            label.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+            label.setFont(UIConstants.BODY_FONT);
+            card.add(label, BorderLayout.CENTER);
+            panel.add(card);
+        }
+        return panel;
+    }
+
+    private Image tintImage(Image image, Color tint) {
+        BufferedImage bi = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+        Graphics g = bi.createGraphics();
+        g.drawImage(image, 0, 0, null);
+        g.setColor(tint);
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+        g.fillRect(0, 0, bi.getWidth(), bi.getHeight());
+        g.dispose();
+        return bi;
+    }
+
+    // Getters
+    public void showBackButton(boolean show) {
+        Component[] components = topBar.getComponents();
+        if (components.length > 1) {
+            components[0].setVisible(show);  // Adjust index if needed
         }
     }
 }
-
 

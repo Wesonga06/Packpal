@@ -4,27 +4,19 @@
  */
 package packpal;
 
-import javax.swing.*;
 import views.WelcomeView;
+
+import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
-        // Set system look and feel - MORE SPECIFIC APPROACH
-        try {
-            String lookAndFeel = UIManager.getSystemLookAndFeelClassName();
-            UIManager.setLookAndFeel(lookAndFeel);
-        } catch (Exception e) {
-            System.err.println("Could not set system look and feel: " + e.getMessage());
-            // Continue with default look and feel
-        }
-        
-        // Create and show the WELCOME screen
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                WelcomeView welcomeView = new WelcomeView();
-                welcomeView.setVisible(true);
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            new WelcomeView();
         });
     }
 }

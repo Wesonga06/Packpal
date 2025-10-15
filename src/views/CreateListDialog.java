@@ -204,8 +204,8 @@ public class CreateListDialog extends JDialog {
                     JOptionPane.INFORMATION_MESSAGE);
             dispose();
             // Refresh parent view if it's MyListsView
-            if (parentFrame instanceof MyListsView) {
-                ((MyListsView) parentFrame).refreshLists();
+            if (parentFrame instanceof CreateNewListView) {
+                ((CreateNewListView) parentFrame).refreshLists();
             }
         } else {
             JOptionPane.showMessageDialog(this,
