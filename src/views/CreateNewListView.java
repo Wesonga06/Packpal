@@ -1,5 +1,6 @@
 package views;
 
+import dao.PackingListDAO;
 import utils.UIConstants;
 import views.components.RoundedButton;
 import views.components.RoundedTextField;
@@ -13,12 +14,15 @@ import views.components.RoundedLabel;
 
 public class CreateNewListView extends JFrame {
     private JComboBox<String> typeCombo;
+    private JTextField nameField, destField, dateField;
     private JLabel weatherLabel;
     private JLabel templatesLabel;
     private ShadowPanel weatherPanel;
     private ShadowPanel templatesPanel;
+    private PackingListDAO dao = new PackingListDAO();
 
     public CreateNewListView() {
+        dao.initSchema();  // Ensure DB ready using your DatabaseConfig
         initializeUI();
         setTitle("Create New List - PackPal");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -45,24 +49,25 @@ public class CreateNewListView extends JFrame {
         nameLabel.setFont(UIConstants.BODY_FONT);
         gbc.gridy = 0;
         mainPanel.add(nameLabel, gbc);
-        RoundedTextField nameField = new RoundedTextField(20);
+        nameField = new RoundedTextField(20);
         nameField.setPreferredSize(new Dimension(300, 50));
         gbc.gridy++;
         mainPanel.add(nameField, gbc);
 
-        // Destination & Dates
+        // Destination
         JLabel destLabel = new JLabel("Destination");
         gbc.gridy++;
         mainPanel.add(destLabel, gbc);
-        RoundedTextField destField = new RoundedTextField(20);
+        destField = new RoundedTextField(20);
         destField.setPreferredSize(new Dimension(300, 50));
         gbc.gridy++;
         mainPanel.add(destField, gbc);
 
+        // Dates
         JLabel dateLabel = new JLabel("Dates");
         gbc.gridy++;
         mainPanel.add(dateLabel, gbc);
-        JTextField dateField = new JTextField("dd/mm/yyyy");
+        dateField = new JTextField("dd/mm/yyyy");
         dateField.setPreferredSize(new Dimension(300, 50));
         gbc.gridy++;
         mainPanel.add(dateField, gbc);
@@ -74,7 +79,7 @@ public class CreateNewListView extends JFrame {
         String[] types = {"Beach", "Business", "Camping", "Weekend"};
         typeCombo = new JComboBox<>(types);
         typeCombo.setPreferredSize(new Dimension(300, 50));
-        typeCombo.addActionListener(e -> refreshLists());  // Auto-refresh on type change
+        typeCombo.addActionListener(e -> refreshList());
         gbc.gridy++;
         mainPanel.add(typeCombo, gbc);
 
@@ -82,7 +87,7 @@ public class CreateNewListView extends JFrame {
         gbc.gridy++;
         weatherPanel = new ShadowPanel(new BorderLayout());
         weatherPanel.setPreferredSize(new Dimension(300, 80));
-        weatherLabel = new JLabel("Sunny, 75°F - Suggested: Sunscreen, Hat");  // Initial
+        weatherLabel = new JLabel("Sunny, 75°F - Suggested: Sunscreen, Hat");
         weatherLabel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         weatherPanel.add(weatherLabel, BorderLayout.CENTER);
         mainPanel.add(weatherPanel, gbc);
@@ -91,9 +96,22 @@ public class CreateNewListView extends JFrame {
         RoundedButton generateBtn = new RoundedButton("Generate List", UIConstants.PRIMARY_BLUE);
         generateBtn.setPreferredSize(new Dimension(300, 50));
         generateBtn.addActionListener(e -> {
-            // TODO: Call service to generate
-            JOptionPane.showMessageDialog(this, "List generated! Opening view...");
-            dispose();
+            String name = nameField.getText().trim();
+            String dest = destField.getText().trim();
+            String dates = dateField.getText().trim();
+            String type = (String) typeCombo.getSelectedItem();
+            if (!name.isEmpty() && !dest.isEmpty() && !dates.isEmpty() && type != null) {
+                int listId = dao.createPackingList(name, dest, dates, type);
+                if (listId > 0) {
+                    JOptionPane.showMessageDialog(this, "List created with ID: " + listId);
+                    new PackingListView(listId);  // Open editor with DB data
+                    dispose();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to create list. Check console.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Please fill all fields.");
+            }
         });
         gbc.gridy++;
         mainPanel.add(generateBtn, gbc);
@@ -102,71 +120,48 @@ public class CreateNewListView extends JFrame {
         gbc.gridy++;
         templatesPanel = new ShadowPanel(new BorderLayout());
         templatesPanel.setPreferredSize(new Dimension(300, 100));
-        templatesLabel = new JLabel("Suggested Templates\n• Beach Essentials\n• Adventure Kit");  // Initial
+        templatesLabel = new JLabel("Suggested Templates\n• Beach Essentials\n• Adventure Kit");
         templatesLabel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         templatesPanel.add(templatesLabel, BorderLayout.CENTER);
         mainPanel.add(templatesPanel, gbc);
 
         add(mainPanel, BorderLayout.CENTER);
 
-        // Initial refresh
-        refreshLists();
+        refreshList();
     }
 
-    /**
-     * Refreshes the weather widget and suggested templates based on current trip type.
-     * Simulates dynamic updates; extend with real API/DAO calls.
-     */
-    public void refreshLists() {
+    public void refreshList() {
         String selectedType = (String) typeCombo.getSelectedItem();
         if (selectedType == null) return;
 
-        // Update Weather (Mock: Based on type)
-        String weatherText;
-        switch (selectedType) {
-            case "Beach":
-                weatherText = "Sunny, 85°F - Suggested: Swimsuit, Towel";
-                break;
-            case "Business":
-                weatherText = "Cloudy, 65°F - Suggested: Laptop, Notebook";
-                break;
-            case "Camping":
-                weatherText = "Clear, 50°F - Suggested: Tent, Sleeping Bag";
-                break;
-            case "Weekend":
-                weatherText = "Partly Cloudy, 70°F - Suggested: Casual Clothes, Snacks";
-                break;
-            default:
-                weatherText = "Loading weather...";
-        }
+        // Update Weather (Mock; extend with API)
+        String weatherText = switch (selectedType) {
+            case "Beach" -> "Sunny, 85°F - Suggested: Swimsuit, Towel";
+            case "Business" -> "Cloudy, 65°F - Suggested: Laptop, Notebook";
+            case "Camping" -> "Clear, 50°F - Suggested: Tent, Sleeping Bag";
+            case "Weekend" -> "Partly Cloudy, 70°F - Suggested: Casual Clothes, Snacks";
+            default -> "Loading weather...";
+        };
         weatherLabel.setText(weatherText);
         weatherPanel.revalidate();
         weatherPanel.repaint();
 
-        // Update Suggested Templates (Mock: List based on type)
-        List<String> templates = getMockTemplatesForType(selectedType);
-        StringBuilder templatesText = new StringBuilder("Suggested Templates\n");
-        for (String template : templates) {
-            templatesText.append("• ").append(template).append("\n");
-        }
-        templatesLabel.setText(templatesText.toString());
-        templatesPanel.revalidate();
-        templatesPanel.repaint();
-
-        // Optional: Repaint main panel for smooth UI update
-        revalidate();
-        repaint();
-    }
-
-    // Mock method for templates; replace with DAO/service call
-    private List<String> getMockTemplatesForType(String type) {
-        return switch (type) {
+        // Update Templates (Mock)
+        List<String> templates = switch (selectedType) {
             case "Beach" -> Arrays.asList("Beach Essentials", "Summer Vacation Kit");
             case "Business" -> Arrays.asList("Work Trip Basics", "Professional Attire");
             case "Camping" -> Arrays.asList("Outdoor Gear", "Survival Essentials");
             case "Weekend" -> Arrays.asList("Quick Getaway", "Road Trip Pack");
             default -> Arrays.asList("Default Template");
         };
+        StringBuilder sb = new StringBuilder("Suggested Templates\n");
+        for (String t : templates) sb.append("• ").append(t).append("\n");
+        templatesLabel.setText(sb.toString());
+        templatesPanel.revalidate();
+        templatesPanel.repaint();
+
+        revalidate();
+        repaint();
     }
 
     private JPanel createTopBar(String title, boolean showBack) {
@@ -183,7 +178,7 @@ public class CreateNewListView extends JFrame {
             back.setContentAreaFilled(false);
             back.setBorderPainted(false);
             back.addActionListener(e -> {
-                new DashboardView();  // Back to Dashboard
+                new DashboardView();
                 dispose();
             });
             bar.add(back, BorderLayout.WEST);

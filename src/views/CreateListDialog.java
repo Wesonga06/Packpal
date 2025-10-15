@@ -19,6 +19,7 @@ public class CreateListDialog extends JDialog {
     private JSpinner startDateSpinner;
     private JSpinner endDateSpinner;
     private JComboBox<String> tripTypeCombo;
+    private Object nameField;
     
     public CreateListDialog(JFrame parent, User user) {
         super(parent, "Create New List", true);
@@ -196,22 +197,26 @@ public class CreateListDialog extends JDialog {
         list.setEndDate(new Date(endDate.getTime()));
         list.setTripType(tripTypeCombo.getSelectedItem().toString());
         
-        boolean success = dao.createPackingList(list);
-        if (success) {
-            JOptionPane.showMessageDialog(this,
-                    "Packing list created successfully!",
-                    "Success",
-                    JOptionPane.INFORMATION_MESSAGE);
+       int listId = dao.createPackingList(nameField.getText(), dateField.getText(), (String) typeCombo.getSelectedItem(), "Generated from form");
+        if(listId > 0){
+            JOptionPane.showMessageDialog(this, "Packing List created with ID: " + listId);
+            
+            new PackingListView (listId);
             dispose();
-            // Refresh parent view if it's MyListsView
-            if (parentFrame instanceof CreateNewListView) {
-                ((CreateNewListView) parentFrame).refreshLists();
-            }
-        } else {
-            JOptionPane.showMessageDialog(this,
-                    "Failed to create packing list.",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+        } else{
+            JOptionPane.showMessageDialog(this, "Failed to create packing list.");
+        }
+    }
+
+    private static class dateField {
+
+        public dateField() {
+        }
+    }
+
+    private static class typeCombo {
+
+        public typeCombo() {
         }
     }
 }

@@ -197,7 +197,7 @@ public class ListDetailView extends JFrame {
     
     private void loadItemsAndProgress() {
         itemPanel.removeAll();
-        List<Item> items = packingListDAO.getItemsByListId(currentList.getListId());
+        List<PackingListDAO.ListItem> items = packingListDAO.getItemsByListId(currentList.getListId());
         
         if (items.isEmpty()) {
             JLabel emptyLabel = new JLabel("No items yet. Tap + to add items!");
@@ -208,7 +208,7 @@ public class ListDetailView extends JFrame {
             itemPanel.add(emptyLabel);
             itemPanel.add(Box.createVerticalGlue());
         } else {
-            for (Item item : items) {
+            for (PackingListDAO.ListItem item : items) {
                 itemPanel.add(createItemCard(item));
                 itemPanel.add(Box.createRigidArea(new Dimension(0, 10)));
             }
@@ -332,5 +332,9 @@ public class ListDetailView extends JFrame {
             JOptionPane.showMessageDialog(this, "Item deleted!");
             loadItemsAndProgress();
         }
+    }
+
+    private PopupMenu createItemCard(PackingListDAO.ListItem item) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
