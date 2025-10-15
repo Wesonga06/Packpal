@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package views;
 
 import controllers.DashboardController;
@@ -18,12 +14,15 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
+import java.util.List;
 
 public class DashboardView extends JFrame {
     private DashboardController controller;
     private JTabbedPane tabbedPane;
     private JPanel topBar;
     private JButton backButton;
+    private List<RoundedButton> tabButtons;  // For robust tab access
 
     public DashboardView() {
         controller = new DashboardController(this);
@@ -53,7 +52,7 @@ public class DashboardView extends JFrame {
 
         // Add My Lists Tab
         JPanel myListsPanel = createMyListsPanel();
-        tabbedPane.addTab(null, myListsPanel);  // Icon/label set later
+        tabbedPane.addTab(null, myListsPanel);
 
         // Add Settings Tab
         JPanel settingsPanel = createSettingsPanel();
@@ -61,7 +60,7 @@ public class DashboardView extends JFrame {
 
         // Set Initial Tab
         tabbedPane.setSelectedIndex(0);
-        updateTabLabels();  // Proper labeling on load
+        updateTabLabels();
 
         add(tabbedPane, BorderLayout.CENTER);
     }
@@ -88,7 +87,7 @@ public class DashboardView extends JFrame {
         RoundedButton myListsTab = new RoundedButton("📋 My Lists", UIConstants.PRIMARY_BLUE);
         myListsTab.setForeground(Color.WHITE);
         myListsTab.setPreferredSize(new Dimension(150, 40));
-        myListsTab.setActionCommand("0");  // Tab index
+        myListsTab.setActionCommand("0");
         myListsTab.addActionListener(createTabActionListener(0));
         tabsPanel.add(myListsTab);
 
@@ -100,21 +99,24 @@ public class DashboardView extends JFrame {
         tabsPanel.add(settingsTab);
 
         bar.add(tabsPanel, BorderLayout.CENTER);
+
+        // Store buttons for easy access
+        tabButtons = Arrays.asList(myListsTab, settingsTab);
+
         return bar;
     }
 
     private ActionListener createTabActionListener(int tabIndex) {
         return e -> {
             tabbedPane.setSelectedIndex(tabIndex);
-            updateTabLabels();  // Refresh styling
+            updateTabLabels();
         };
     }
 
     private void updateTabLabels() {
         int selected = tabbedPane.getSelectedIndex();
-        Component[] tabs = ((JPanel) topBar.getComponent(1)).getComponents();  // Tab buttons array
-        for (int i = 0; i < tabs.length; i++) {
-            RoundedButton tabBtn = (RoundedButton) tabs[i];
+        for (int i = 0; i < tabButtons.size(); i++) {
+            RoundedButton tabBtn = tabButtons.get(i);
             if (i == selected) {
                 tabBtn.setBackground(UIConstants.PRIMARY_BLUE);
                 tabBtn.setForeground(Color.WHITE);
@@ -200,7 +202,7 @@ public class DashboardView extends JFrame {
                 g2.fillOval(0, 0, 60, 60);
                 g2.setColor(Color.WHITE);
                 g2.setFont(new Font("Arial", Font.BOLD, 24));
-                g2.drawString("JD", 15, 45);  // Initials (dynamic from user name)
+                g2.drawString(ProfileModel.getName().substring(0, 2).toUpperCase(), 15, 45);  // Dynamic initials
                 g2.dispose();
             }
         };
@@ -217,7 +219,7 @@ public class DashboardView extends JFrame {
         JLabel nameLabel = new JLabel("Name");
         nameLabel.setFont(UIConstants.TITLE_FONT.deriveFont(12f));
         nameLabel.setForeground(Color.GRAY);
-        JTextField nameField = new JTextField(ProfileModel.getName());  // Load from model
+        JTextField nameField = new JTextField(ProfileModel.getName());
         nameField.setPreferredSize(new Dimension(200, 30));
         nameField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(Color.LIGHT_GRAY),
@@ -249,10 +251,12 @@ public class DashboardView extends JFrame {
         RoundedButton saveProfileBtn = new RoundedButton("Save Profile", UIConstants.PRIMARY_BLUE);
         saveProfileBtn.setPreferredSize(new Dimension(100, 35));
         saveProfileBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        final JTextField finalNameField = nameField;  // For lambda
+        final JTextField finalEmailField = emailField;
         saveProfileBtn.addActionListener(e -> {
-            // TODO: Update user model/DAO with nameField.getText(), emailField.getText()
-            ProfileModel.setName(nameField.getText());
-            ProfileModel.setEmail(emailField.getText());
+            ProfileModel.setName(finalNameField.getText());
+            ProfileModel.setEmail(finalEmailField.getText());
+            avatarPanel.repaint();  // Refresh initials
             JOptionPane.showMessageDialog(this, "Profile updated!");
         });
         profileCard.add(saveProfileBtn, BorderLayout.SOUTH);
@@ -267,7 +271,7 @@ public class DashboardView extends JFrame {
         content.add(settingsTitle);
         content.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Toggle Cards (Styled Checkboxes)
+        // Toggle Cards
         String[][] settings = {
             {"Push Notifications", "Enable app notifications"},
             {"Dark Mode", "Switch to dark theme"},
@@ -289,11 +293,9 @@ public class DashboardView extends JFrame {
             toggleLeft.add(descLabel, BorderLayout.SOUTH);
             toggleCard.add(toggleLeft, BorderLayout.WEST);
 
-            // Styled Toggle (JCheckBox as switch)
             JCheckBox toggleSwitch = new JCheckBox();
             toggleSwitch.setHorizontalAlignment(SwingConstants.RIGHT);
             toggleSwitch.addActionListener(e -> {
-                // TODO: Save preference to user settings
                 System.out.println(setting[0] + " toggled: " + toggleSwitch.isSelected());
             });
             toggleCard.add(toggleSwitch, BorderLayout.EAST);
@@ -325,7 +327,6 @@ public class DashboardView extends JFrame {
             arrow.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             advCard.add(arrow, BorderLayout.EAST);
 
-            // Action for each
             advCard.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent evt) {
                     if (option.equals("Privacy Policy")) {
@@ -342,7 +343,7 @@ public class DashboardView extends JFrame {
             content.add(Box.createRigidArea(new Dimension(0, 5)));
         }
 
-        // Logout Button (Bottom)
+        // Logout Button
         content.add(Box.createRigidArea(new Dimension(0, 20)));
         RoundedButton logoutBtn = new RoundedButton("Logout", Color.LIGHT_GRAY);
         logoutBtn.setForeground(Color.BLACK);
@@ -409,7 +410,6 @@ public class DashboardView extends JFrame {
             editBtn.setFont(UIConstants.BODY_FONT.deriveFont(12f));
             editBtn.setBorderPainted(false);
             editBtn.addActionListener(e -> {
-                // TODO: Open dynamic list view
                 JOptionPane.showMessageDialog(this, "Opening " + item[0] + " for editing.");
             });
             rightPanel.add(editBtn);
@@ -423,7 +423,7 @@ public class DashboardView extends JFrame {
         parent.add(Box.createRigidArea(new Dimension(0, 20)));
     }
 
-    // Inner class for tab change (sync button styles)
+    // Inner class for tab change
     private class TabChangeListener implements ChangeListener {
         @Override
         public void stateChanged(ChangeEvent e) {

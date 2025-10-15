@@ -5,17 +5,17 @@
 package models;
 
 public class ProfileModel {
-    private String name = "John Doe";  // Default
-    private String email = "user@example.com";
-    private String avatarPath = "";  // For image path
+    private static String name = "John Doe";  // Static for simple global access
+    private static String email = "user@example.com";
+    private static String avatarPath = "";
 
-    // Getters/Setters
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    // Static Getters/Setters
+    public static String getName() { return name; }
+    public static void setName(String name) { ProfileModel.name = name; }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public static String getEmail() { return email; }
+    public static void setEmail(String email) { ProfileModel.email = email; }
 
-    public String getAvatarPath() { return avatarPath; }
-    public void setAvatarPath(String avatarPath) { this.avatarPath = avatarPath; }
+    public static String getAvatarPath() { return avatarPath; }
+    public static void setAvatarPath(String avatarPath) { ProfileModel.avatarPath = avatarPath; }
 }

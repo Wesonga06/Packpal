@@ -48,12 +48,15 @@ public class WelcomeView extends JFrame {
         // Pink Bag Icon
         bagIcon = new JLabel();
         bagIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
+        bagIcon.setHorizontalAlignment(SwingConstants.CENTER);
         bagIcon.setBorder(BorderFactory.createEmptyBorder(40, 0, 20, 0));
         try {
             ImageIcon icon = new ImageIcon(getClass().getResource("/assets/bag.JPEG"));
-            Image pinkImage = tintImage(icon.getImage(), UIConstants.PINK_ACCENT);
-            Image scaled = pinkImage.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
-            bagIcon.setIcon(new ImageIcon(scaled));
+            if (icon.getImage() != null) {
+                Image pinkImage = tintImage(icon.getImage(), UIConstants.PINK_ACCENT);
+                Image scaled = pinkImage.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                bagIcon.setIcon(new ImageIcon(scaled));
+            }
         } catch (Exception e) {
             bagIcon.setText("👜");
             bagIcon.setFont(new Font("Arial", Font.PLAIN, 80));
@@ -144,6 +147,7 @@ public class WelcomeView extends JFrame {
     }
 
     private Image tintImage(Image image, Color tint) {
+        if (image == null) return null;
         BufferedImage bi = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
         Graphics g = bi.createGraphics();
         g.drawImage(image, 0, 0, null);
@@ -158,7 +162,7 @@ public class WelcomeView extends JFrame {
     public void showBackButton(boolean show) {
         Component[] components = topBar.getComponents();
         if (components.length > 1) {
-            components[0].setVisible(show);  // Adjust index if needed
+            components[0].setVisible(show);
         }
     }
 }

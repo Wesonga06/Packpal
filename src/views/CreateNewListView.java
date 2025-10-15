@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package views;
 
 import utils.UIConstants;
@@ -11,9 +7,17 @@ import views.components.ShadowPanel;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
+import java.util.List;
 import views.components.RoundedLabel;
 
 public class CreateNewListView extends JFrame {
+    private JComboBox<String> typeCombo;
+    private JLabel weatherLabel;
+    private JLabel templatesLabel;
+    private ShadowPanel weatherPanel;
+    private ShadowPanel templatesPanel;
+
     public CreateNewListView() {
         initializeUI();
         setTitle("Create New List - PackPal");
@@ -68,16 +72,17 @@ public class CreateNewListView extends JFrame {
         gbc.gridy++;
         mainPanel.add(typeLabel, gbc);
         String[] types = {"Beach", "Business", "Camping", "Weekend"};
-        JComboBox<String> typeCombo = new JComboBox<>(types);
+        typeCombo = new JComboBox<>(types);
         typeCombo.setPreferredSize(new Dimension(300, 50));
+        typeCombo.addActionListener(e -> refreshLists());  // Auto-refresh on type change
         gbc.gridy++;
         mainPanel.add(typeCombo, gbc);
 
         // Weather Widget
         gbc.gridy++;
-        ShadowPanel weatherPanel = new ShadowPanel(new BorderLayout());
+        weatherPanel = new ShadowPanel(new BorderLayout());
         weatherPanel.setPreferredSize(new Dimension(300, 80));
-        JLabel weatherLabel = new JLabel("Sunny, 75°F - Suggested: Sunscreen, Hat");
+        weatherLabel = new JLabel("Sunny, 75°F - Suggested: Sunscreen, Hat");  // Initial
         weatherLabel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         weatherPanel.add(weatherLabel, BorderLayout.CENTER);
         mainPanel.add(weatherPanel, gbc);
@@ -95,14 +100,73 @@ public class CreateNewListView extends JFrame {
 
         // Suggested Templates
         gbc.gridy++;
-        ShadowPanel templatesPanel = new ShadowPanel(new BorderLayout());
+        templatesPanel = new ShadowPanel(new BorderLayout());
         templatesPanel.setPreferredSize(new Dimension(300, 100));
-        JLabel templatesLabel = new JLabel("Suggested Templates\n• Beach Essentials\n• Adventure Kit");
+        templatesLabel = new JLabel("Suggested Templates\n• Beach Essentials\n• Adventure Kit");  // Initial
         templatesLabel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         templatesPanel.add(templatesLabel, BorderLayout.CENTER);
         mainPanel.add(templatesPanel, gbc);
 
         add(mainPanel, BorderLayout.CENTER);
+
+        // Initial refresh
+        refreshLists();
+    }
+
+    /**
+     * Refreshes the weather widget and suggested templates based on current trip type.
+     * Simulates dynamic updates; extend with real API/DAO calls.
+     */
+    public void refreshLists() {
+        String selectedType = (String) typeCombo.getSelectedItem();
+        if (selectedType == null) return;
+
+        // Update Weather (Mock: Based on type)
+        String weatherText;
+        switch (selectedType) {
+            case "Beach":
+                weatherText = "Sunny, 85°F - Suggested: Swimsuit, Towel";
+                break;
+            case "Business":
+                weatherText = "Cloudy, 65°F - Suggested: Laptop, Notebook";
+                break;
+            case "Camping":
+                weatherText = "Clear, 50°F - Suggested: Tent, Sleeping Bag";
+                break;
+            case "Weekend":
+                weatherText = "Partly Cloudy, 70°F - Suggested: Casual Clothes, Snacks";
+                break;
+            default:
+                weatherText = "Loading weather...";
+        }
+        weatherLabel.setText(weatherText);
+        weatherPanel.revalidate();
+        weatherPanel.repaint();
+
+        // Update Suggested Templates (Mock: List based on type)
+        List<String> templates = getMockTemplatesForType(selectedType);
+        StringBuilder templatesText = new StringBuilder("Suggested Templates\n");
+        for (String template : templates) {
+            templatesText.append("• ").append(template).append("\n");
+        }
+        templatesLabel.setText(templatesText.toString());
+        templatesPanel.revalidate();
+        templatesPanel.repaint();
+
+        // Optional: Repaint main panel for smooth UI update
+        revalidate();
+        repaint();
+    }
+
+    // Mock method for templates; replace with DAO/service call
+    private List<String> getMockTemplatesForType(String type) {
+        return switch (type) {
+            case "Beach" -> Arrays.asList("Beach Essentials", "Summer Vacation Kit");
+            case "Business" -> Arrays.asList("Work Trip Basics", "Professional Attire");
+            case "Camping" -> Arrays.asList("Outdoor Gear", "Survival Essentials");
+            case "Weekend" -> Arrays.asList("Quick Getaway", "Road Trip Pack");
+            default -> Arrays.asList("Default Template");
+        };
     }
 
     private JPanel createTopBar(String title, boolean showBack) {
