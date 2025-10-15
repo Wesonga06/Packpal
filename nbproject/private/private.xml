@@ -5,10 +5,10 @@
         <group>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/packpal/Main.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/dao/PackingListDAO.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/MyListsView.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/models/PackingList.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/CreateListDialog.java</file>
-            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/ListDetailView.java</file>
-            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/MyListsView.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/models/User.java</file>
         </group>
     </open-files>
 </project-private>

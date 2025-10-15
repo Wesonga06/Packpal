@@ -11,6 +11,7 @@ public class CreateListDialog extends JDialog {
     private static final Color PRIMARY_BLUE = new Color(70, 160, 255);
     private User currentUser;
     private PackingListDAO dao;
+    private JFrame parentFrame;
     
     private JTextField listNameField;
     private JTextField descriptionField;
@@ -19,8 +20,9 @@ public class CreateListDialog extends JDialog {
     private JSpinner endDateSpinner;
     private JComboBox<String> tripTypeCombo;
     
-    public CreateListDialog(User user) {
-        super((JFrame)parent, "Create New List", true);
+    public CreateListDialog(JFrame parent, User user) {
+        super(parent, "Create New List", true);
+        this.parentFrame = parent;
         this.currentUser = user;
         this.dao = new PackingListDAO();
         initUI();
@@ -28,17 +30,28 @@ public class CreateListDialog extends JDialog {
     
     private void initUI() {
         setSize(450, 600);
-        setLocationRelativeTo(getParent());
+        setLocationRelativeTo(parentFrame);
         
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
         mainPanel.setBackground(Color.WHITE);
         
+        // Back button
+        JButton backButton = new JButton("← Back");
+        backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        backButton.setForeground(PRIMARY_BLUE);
+        backButton.setBorderPainted(false);
+        backButton.setContentAreaFilled(false);
+        backButton.setFocusPainted(false);
+        backButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        backButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        backButton.addActionListener(e -> dispose());
+        
         // Title
-        JLabel titleLabel = new JLabel("Create New Packing List");
+        JLabel titleLabel = new JLabel("Create New List");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         // Trip name
         JLabel nameLabel = createLabel("Trip name (e.g. Weekend Getaway)");
@@ -53,7 +66,7 @@ public class CreateListDialog extends JDialog {
         destinationField = createTextField();
         
         // Start date
-        JLabel startDateLabel = createLabel("Start Date (MM / DD / YYYY)");
+        JLabel startDateLabel = createLabel("MM / mm / yyyy");
         SpinnerDateModel startModel = new SpinnerDateModel();
         startDateSpinner = new JSpinner(startModel);
         JSpinner.DateEditor startEditor = new JSpinner.DateEditor(startDateSpinner, "MM/dd/yyyy");
@@ -62,7 +75,7 @@ public class CreateListDialog extends JDialog {
         startDateSpinner.setFont(new Font("Arial", Font.PLAIN, 14));
         
         // End date
-        JLabel endDateLabel = createLabel("End Date (MM / DD / YYYY)");
+        JLabel endDateLabel = createLabel("MM / mm / yyyy");
         SpinnerDateModel endModel = new SpinnerDateModel();
         endDateSpinner = new JSpinner(endModel);
         JSpinner.DateEditor endEditor = new JSpinner.DateEditor(endDateSpinner, "MM/dd/yyyy");
@@ -84,6 +97,8 @@ public class CreateListDialog extends JDialog {
         generateButton.addActionListener(e -> generateList());
         
         // Add components
+        mainPanel.add(backButton);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         mainPanel.add(titleLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 25)));
         mainPanel.add(nameLabel);
@@ -188,6 +203,10 @@ public class CreateListDialog extends JDialog {
                     "Success",
                     JOptionPane.INFORMATION_MESSAGE);
             dispose();
+            // Refresh parent view if it's MyListsView
+            if (parentFrame instanceof MyListsView) {
+                ((MyListsView) parentFrame).refreshLists();
+            }
         } else {
             JOptionPane.showMessageDialog(this,
                     "Failed to create packing list.",
