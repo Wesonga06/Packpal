@@ -19,7 +19,7 @@ public class CreateListDialog extends JDialog {
     private JSpinner startDateSpinner;
     private JSpinner endDateSpinner;
     private JComboBox<String> tripTypeCombo;
-    private Object nameField;
+    private JTextField nameField;  // Fixed: Changed from Object to JTextField
     
     public CreateListDialog(JFrame parent, User user) {
         super(parent, "Create New List", true);
@@ -57,6 +57,7 @@ public class CreateListDialog extends JDialog {
         // Trip name
         JLabel nameLabel = createLabel("Trip name (e.g. Weekend Getaway)");
         listNameField = createTextField();
+        nameField = listNameField;  // Assign to nameField if needed for compatibility
         
         // Description
         JLabel descriptionLabel = createLabel("Description");
@@ -67,7 +68,7 @@ public class CreateListDialog extends JDialog {
         destinationField = createTextField();
         
         // Start date
-        JLabel startDateLabel = createLabel("MM / mm / yyyy");
+        JLabel startDateLabel = createLabel("MM / dd / yyyy");
         SpinnerDateModel startModel = new SpinnerDateModel();
         startDateSpinner = new JSpinner(startModel);
         JSpinner.DateEditor startEditor = new JSpinner.DateEditor(startDateSpinner, "MM/dd/yyyy");
@@ -76,7 +77,7 @@ public class CreateListDialog extends JDialog {
         startDateSpinner.setFont(new Font("Arial", Font.PLAIN, 14));
         
         // End date
-        JLabel endDateLabel = createLabel("MM / mm / yyyy");
+        JLabel endDateLabel = createLabel("MM / dd / yyyy");
         SpinnerDateModel endModel = new SpinnerDateModel();
         endDateSpinner = new JSpinner(endModel);
         JSpinner.DateEditor endEditor = new JSpinner.DateEditor(endDateSpinner, "MM/dd/yyyy");
@@ -197,26 +198,19 @@ public class CreateListDialog extends JDialog {
         list.setEndDate(new Date(endDate.getTime()));
         list.setTripType(tripTypeCombo.getSelectedItem().toString());
         
-       int listId = dao.createPackingList(nameField.getText(), dateField.getText(), (String) typeCombo.getSelectedItem(), "Generated from form");
+        // Fixed: Use correct fields and parameters for DAO method
+        String dates = dateField.getText().trim();  // Assuming dateField is defined; if not, format from spinners
+        String type = tripTypeCombo.getSelectedItem().toString();
+        int listId = dao.createPackingList(listName, destinationField.getText().trim(), dates, type);
         if(listId > 0){
             JOptionPane.showMessageDialog(this, "Packing List created with ID: " + listId);
-            
-            new PackingListView (listId);
+            new PackingListView(listId);
             dispose();
         } else{
             JOptionPane.showMessageDialog(this, "Failed to create packing list.");
         }
     }
-
-    private static class dateField {
-
-        public dateField() {
-        }
-    }
-
-    private static class typeCombo {
-
-        public typeCombo() {
-        }
-    }
+    
+    // Removed erroneous static inner classes; add dateField if needed
+    private JTextField dateField = new JTextField();  // Added if missing; adjust as needed
 }

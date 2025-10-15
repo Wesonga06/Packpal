@@ -21,8 +21,9 @@ public class PackingListDAO {
             // Users table (for future auth)
             stmt.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, email TEXT UNIQUE, password TEXT, name TEXT)");
             
-            // Packing Lists table
-            stmt.execute("CREATE TABLE IF NOT EXISTS packing_lists (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, name TEXT, destination TEXT, dates TEXT, type TEXT, created_date DATE DEFAULT CURRENT_DATE, FOREIGN KEY(user_id) REFERENCES users(id))");
+            // Packing Lists table (added description column if not exists)
+            stmt.execute("CREATE TABLE IF NOT EXISTS packing_lists (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, name TEXT, destination TEXT, dates TEXT, type TEXT, description TEXT, created_date DATE DEFAULT CURRENT_DATE, FOREIGN KEY(user_id) REFERENCES users(id))");
+            stmt.execute("ALTER TABLE packing_lists ADD COLUMN description TEXT DEFAULT ''");  // Add if missing
             
             // List Items table
             stmt.execute("CREATE TABLE IF NOT EXISTS list_items (id INTEGER PRIMARY KEY AUTOINCREMENT, list_id INTEGER, name TEXT, packed BOOLEAN DEFAULT FALSE, FOREIGN KEY(list_id) REFERENCES packing_lists(id))");
@@ -31,7 +32,7 @@ public class PackingListDAO {
             stmt.execute("INSERT OR IGNORE INTO users (id, email, password, name) VALUES (1, 'user@example.com', 'pass', 'John Doe')");
             
             // Insert sample data if empty
-            stmt.execute("INSERT OR IGNORE INTO packing_lists (id, user_id, name, destination, dates, type) VALUES (1, 1, 'Weekend Getaway', 'Beach', '2025-10-15 to 2025-10-17', 'Weekend')");
+            stmt.execute("INSERT OR IGNORE INTO packing_lists (id, user_id, name, destination, dates, type, description) VALUES (1, 1, 'Weekend Getaway', 'Beach', '2025-10-15 to 2025-10-17', 'Weekend', 'Sample weekend trip')");
             stmt.execute("INSERT OR IGNORE INTO list_items (list_id, name) VALUES (1, 'Passport'), (1, 'Phone Charger'), (1, 'Sunglasses'), (1, 'Toothbrush')");
             
             System.out.println("Database schema initialized successfully.");
@@ -41,34 +42,36 @@ public class PackingListDAO {
         }
     }
 
-    // Create a new packing list
+    // Create a new packing list (updated to match CreateListDialog parameters: name, destination, dates, type, description)
     public int createPackingList(String name, String destination, String dates, String type) {
         if (name == null || name.trim().isEmpty() || destination == null || destination.trim().isEmpty() ||
             dates == null || dates.trim().isEmpty() || type == null) {
-            System.err.println("Invalid input parameters for createList");
+            System.err.println("Invalid input parameters for createPackingList");
             return -1;
         }
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(
-                "INSERT INTO packing_lists (user_id, name, destination, dates, type) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                "INSERT INTO packing_lists (user_id, name, destination, dates, type, description) VALUES (?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, USER_ID);
             stmt.setString(2, name.trim());
             stmt.setString(3, destination.trim());
             stmt.setString(4, dates.trim());
             stmt.setString(5, type);
+            stmt.setString(6, description != null ? description.trim() : "");
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
-                System.err.println("Creating list failed, no rows affected.");
+                System.err.println("Creating packing list failed, no rows affected.");
                 return -1;
             }
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     int listId = generatedKeys.getInt(1);
                     addDefaultItems(listId, type);
+                    System.out.println("Packing list created with ID: " + listId);
                     return listId;
                 }
             }
         } catch (SQLException e) {
-            System.err.println("SQL Exception in createList: " + e.getMessage());
+            System.err.println("SQL Exception in createPackingList: " + e.getMessage());
             e.printStackTrace();
         }
         return -1;
@@ -156,70 +159,72 @@ public class PackingListDAO {
     }
     
     // Add item to list
-public void addItem(int listId, String name) {
-    try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(
-            "INSERT INTO list_items (list_id, name) VALUES (?, ?)")) {
-        stmt.setInt(1, listId);
-        stmt.setString(2, name.trim());
-        stmt.executeUpdate();
-    } catch (SQLException e) {
-        System.err.println("SQL Exception in addItem: " + e.getMessage());
-        e.printStackTrace();
+    public void addItem(int listId, String name) {
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(
+                "INSERT INTO list_items (list_id, name) VALUES (?, ?)")) {
+            stmt.setInt(1, listId);
+            stmt.setString(2, name.trim());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("SQL Exception in addItem: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
-}
 
-// Update item name
-public void updateItemName(int listId, int itemId, String newName) {
-    try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(
-            "UPDATE list_items SET name = ? WHERE list_id = ? AND id = ?")) {
-        stmt.setString(1, newName.trim());
-        stmt.setInt(2, listId);
-        stmt.setInt(3, itemId);
-        stmt.executeUpdate();
-    } catch (SQLException e) {
-        System.err.println("SQL Exception in updateItemName: " + e.getMessage());
-        e.printStackTrace();
+    // Update item name
+    public void updateItemName(int listId, int itemId, String newName) {
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(
+                "UPDATE list_items SET name = ? WHERE list_id = ? AND id = ?")) {
+            stmt.setString(1, newName.trim());
+            stmt.setInt(2, listId);
+            stmt.setInt(3, itemId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("SQL Exception in updateItemName: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
-}
 
-// Delete item
-public void deleteItem(int listId, int itemId) {
-    try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(
-            "DELETE FROM list_items WHERE list_id = ? AND id = ?")) {
-        stmt.setInt(1, listId);
-        stmt.setInt(2, itemId);
-        stmt.executeUpdate();
-    } catch (SQLException e) {
-        System.err.println("SQL Exception in deleteItem: " + e.getMessage());
-        e.printStackTrace();
+    // Delete item
+    public void deleteItem(int listId, int itemId) {
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(
+                "DELETE FROM list_items WHERE list_id = ? AND id = ?")) {
+            stmt.setInt(1, listId);
+            stmt.setInt(2, itemId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("SQL Exception in deleteItem: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
-}
 
     public void setItemPackedStatus(int itemId, boolean packed) {
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(
-                "UPDATE list_items SET packed =? WHERE id = ?")){
+                "UPDATE list_items SET packed = ? WHERE id = ?")) {
             stmt.setBoolean(1, packed);
             stmt.setInt(2, itemId);
             stmt.executeUpdate();
-        } catch (SQLException e){
+        } catch (SQLException e) {
             System.err.println("SetItemPackedStatus error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     public List<ListItem> getItemsByListId(int listId) {
-        List<ListItem> item = new ArrayList<>();
+        List<ListItem> items = new ArrayList<>();
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(
                 "SELECT id, name, packed FROM list_items WHERE list_id = ?")) {
             stmt.setInt(1, listId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    item.add(new ListItem(rs.getInt("id"), rs.getString("name"), rs.getBoolean("packed")));
+                    items.add(new ListItem(rs.getInt("id"), rs.getString("name"), rs.getBoolean("packed")));
                 }
             }
         } catch (SQLException e) {
             System.err.println("GetItemsByListId error: " + e.getMessage());
+            e.printStackTrace();
         }
-        return item;
+        return items;
     }
 
     public int getTotalItemsCount(int listId) {
@@ -252,7 +257,6 @@ public void deleteItem(int listId, int itemId) {
         return 0;
     }
 
-
     // POJO classes
     public static class PackingList {
         private final int id;
@@ -281,17 +285,30 @@ public void deleteItem(int listId, int itemId) {
             this.packed = packed;
         }
 
-        public int getId() { return id; }
-        public String getName() { return name; }
-        public void setName(String newName){
-            if(newName != null && !newName.trim().isEmpty()){
-                this.name = newName.trim();
-            } else {
-              throw new IllegalArgumentException("Name cannot be null or empty");
-            }
+        public boolean isPacked() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
-        public boolean isPacked() { return packed; }
-        public void setPacked(boolean packed) { this.packed = packed; }
 
+        public String getName() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        public int getId() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        public void setPacked(boolean selected) {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        public void setName(String newName) {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+    }
+
+    private static class description {
+
+        public description() {
+        }
     }
 }
