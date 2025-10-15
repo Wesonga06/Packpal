@@ -7,10 +7,6 @@
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/dao/PackingListDAO.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/models/PackingList.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/CreateListDialog.java</file>
-            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/models/User.java</file>
-            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/ListDetailView.java</file>
-            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/WelcomeView.java</file>
-            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/utils/UIConstants.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/components/RoundedButton.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/components/RoundedTextField.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/components/RoundedLabel.java</file>
@@ -25,6 +21,7 @@
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/controllers/RegisterController.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/controllers/DashboardController.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/assets/bag.jpeg</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/PackingListView.java</file>
         </group>
     </open-files>
 </project-private>
