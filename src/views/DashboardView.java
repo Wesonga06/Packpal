@@ -202,7 +202,8 @@ public class DashboardView extends JFrame {
                 g2.fillOval(0, 0, 60, 60);
                 g2.setColor(Color.WHITE);
                 g2.setFont(new Font("Arial", Font.BOLD, 24));
-                g2.drawString(ProfileModel.getName().substring(0, 2).toUpperCase(), 15, 45);  // Dynamic initials
+                String initials = ProfileModel.getName().substring(0, Math.min(2, ProfileModel.getName().length())).toUpperCase();
+                g2.drawString(initials, 15, 45);  // Safe substring
                 g2.dispose();
             }
         };
@@ -251,7 +252,7 @@ public class DashboardView extends JFrame {
         RoundedButton saveProfileBtn = new RoundedButton("Save Profile", UIConstants.PRIMARY_BLUE);
         saveProfileBtn.setPreferredSize(new Dimension(100, 35));
         saveProfileBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        final JTextField finalNameField = nameField;  // For lambda
+        final JTextField finalNameField = nameField;
         final JTextField finalEmailField = emailField;
         saveProfileBtn.addActionListener(e -> {
             ProfileModel.setName(finalNameField.getText());
@@ -373,11 +374,11 @@ public class DashboardView extends JFrame {
     }
 
     private void addSection(JPanel parent, String title, String[][] listItems) {
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(UIConstants.TITLE_FONT.deriveFont(16f).deriveFont(Font.BOLD));
-        titleLabel.setForeground(Color.BLACK);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
-        parent.add(titleLabel);
+        JLabel sectionTitleLabel = new JLabel(title);  // Renamed to avoid any shadowing
+        sectionTitleLabel.setFont(UIConstants.TITLE_FONT.deriveFont(16f).deriveFont(Font.BOLD));
+        sectionTitleLabel.setForeground(Color.BLACK);
+        sectionTitleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        parent.add(sectionTitleLabel);
 
         for (String[] item : listItems) {
             ShadowPanel card = new ShadowPanel(new BorderLayout());
@@ -386,13 +387,13 @@ public class DashboardView extends JFrame {
 
             JPanel leftPanel = new JPanel(new GridLayout(2, 1));
             leftPanel.setOpaque(false);
-            JLabel title = new JLabel(item[0]);
-            title.setFont(UIConstants.BODY_FONT.deriveFont(16f));
-            title.setForeground(Color.BLACK);
+            JLabel itemTitle = new JLabel(item[0]);  // Renamed to 'itemTitle' for clarity, avoiding any potential 'title' conflict
+            itemTitle.setFont(UIConstants.BODY_FONT.deriveFont(16f));
+            itemTitle.setForeground(Color.BLACK);
             JLabel subtitle = new JLabel(item[1]);
             subtitle.setFont(UIConstants.BODY_FONT.deriveFont(12f));
             subtitle.setForeground(Color.GRAY);
-            leftPanel.add(title);
+            leftPanel.add(itemTitle);
             leftPanel.add(subtitle);
             card.add(leftPanel, BorderLayout.WEST);
 

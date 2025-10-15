@@ -5,10 +5,26 @@
         <group>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/packpal/Main.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/dao/PackingListDAO.java</file>
-            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/MyListsView.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/models/PackingList.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/CreateListDialog.java</file>
             <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/models/User.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/ListDetailView.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/WelcomeView.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/utils/UIConstants.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/components/RoundedButton.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/components/RoundedTextField.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/components/RoundedLabel.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/components/ShadowPanel.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/models/ProfileModel.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/LoginView.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/RegisterView.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/CreateNewListView.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/views/DashboardView.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/controllers/WelcomeController.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/controllers/LoginController.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/controllers/RegisterController.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/controllers/DashboardController.java</file>
+            <file>file:/C:/Users/cindy/OneDrive/Desktop/Documents/NetBeansProjects/Packpal/src/assets/bag.jpeg</file>
         </group>
     </open-files>
 </project-private>
