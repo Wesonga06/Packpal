@@ -8,7 +8,7 @@ import models.PackingList;
 
 public class PackingListDAO {
 
-    private static final int USER_ID = 1; // Temporary user for demo
+    private static final int USER_ID = 1; // Temporary demo user
 
     private Connection getConnection() throws SQLException {
         return DatabaseConfig.getConnection();
@@ -65,53 +65,62 @@ public class PackingListDAO {
         }
     }
 
-    // ✅ Create new packing list
+    // ✅ Create new packing list (used by CreateNewListView)
     public int createPackingList(String name, String dest, String dates, String type) {
-    int listId = -1;
-    String sql = """
-        INSERT INTO packing_lists (user_id, list_name, description, destination, start_date, end_date, trip_type)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """;
+        int listId = -1;
+        String sql = """
+            INSERT INTO packing_lists (user_id, list_name, description, destination, start_date, end_date, trip_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """;
 
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-        stmt.setInt(1, 1); // default user_id for now
-        stmt.setString(2, name);
-        stmt.setString(3, "Auto-generated list for " + dest);
-        stmt.setString(4, dest);
+            stmt.setInt(1, USER_ID);
+            stmt.setString(2, name);
+            stmt.setString(3, "Auto-generated list for " + dest);
+            stmt.setString(4, dest);
 
-        // Parse date input (dd/mm/yyyy → yyyy-mm-dd)
-        java.sql.Date sqlDate = null;
-        try {
-            String[] parts = dates.split("/");
-            if (parts.length == 3) {
-                String formatted = parts[2] + "-" + parts[1] + "-" + parts[0];
-                sqlDate = java.sql.Date.valueOf(formatted);
+            // Convert dd/mm/yyyy → yyyy-mm-dd
+            java.sql.Date sqlDate = null;
+            try {
+                String[] parts = dates.split("/");
+                if (parts.length == 3) {
+                    String formatted = parts[2] + "-" + parts[1] + "-" + parts[0];
+                    sqlDate = java.sql.Date.valueOf(formatted);
+                }
+            } catch (Exception ex) {
+                sqlDate = new java.sql.Date(System.currentTimeMillis());
             }
-        } catch (Exception ex) {
-            sqlDate = new java.sql.Date(System.currentTimeMillis());
+
+            stmt.setDate(5, sqlDate);
+            stmt.setDate(6, sqlDate);
+            stmt.setString(7, type);
+
+            stmt.executeUpdate();
+
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) listId = rs.getInt(1);
+
+            if (listId > 0) addDefaultItems(listId, type);
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error creating packing list: " + e.getMessage());
+            e.printStackTrace();
         }
 
-        stmt.setDate(5, sqlDate);
-        stmt.setDate(6, sqlDate);
-        stmt.setString(7, type);
-
-        stmt.executeUpdate();
-
-        ResultSet rs = stmt.getGeneratedKeys();
-        if (rs.next()) listId = rs.getInt(1);
-
-        if (listId > 0) addDefaultItems(listId, type);
-
-    } catch (SQLException e) {
-        System.err.println("❌ Error creating packing list: " + e.getMessage());
-        e.printStackTrace();
+        return listId;
     }
 
-    return listId;
-}
-
+    // ✅ Overload for PackingList object (used by some classes)
+    public int createPackingList(PackingList list) {
+        return createPackingList(
+                list.getListName(),
+                list.getDestination(),
+                list.getStartDate() != null ? list.getStartDate().toString() : "01/01/2025",
+                list.getTripType()
+        );
+    }
 
     // ✅ Retrieve all packing lists
     public List<PackingList> getLists() {
@@ -206,7 +215,12 @@ public class PackingListDAO {
         return items;
     }
 
-    // ✅ Retrieve one specific list item
+    // ✅ Alias for compatibility (used by ListDetailView)
+    public List<ListItem> getItemByListId(int listId) {
+        return getListItems(listId);
+    }
+
+    // ✅ Retrieve single item
     public ListItem getListItem(int itemId) {
         String sql = "SELECT id, name, packed FROM list_items WHERE id = ?";
         ListItem item = null;
@@ -219,9 +233,9 @@ public class PackingListDAO {
 
             if (rs.next()) {
                 item = new ListItem(
-                    rs.getInt("id"),
-                    rs.getString("name"),
-                    rs.getBoolean("packed")
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getBoolean("packed")
                 );
             }
 
@@ -231,35 +245,6 @@ public class PackingListDAO {
 
         return item;
     }
-    
-    // ✅ Retrieve items for a given packing list (compatible with ListDetailView)
-public List<ListItem> getItemByListId(int listId) {
-    List<ListItem> items = new ArrayList<>();
-    String sql = "SELECT id, name, packed FROM list_items WHERE list_id = ?";
-
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-        stmt.setInt(1, listId);
-        ResultSet rs = stmt.executeQuery();
-
-        while (rs.next()) {
-            ListItem item = new ListItem(
-                rs.getInt("id"),
-                rs.getString("name"),
-                rs.getBoolean("packed")
-            );
-            items.add(item);
-        }
-
-    } catch (SQLException e) {
-        System.err.println("❌ Error getting items by list ID: " + e.getMessage());
-        e.printStackTrace();
-    }
-
-    return items;
-}
-
 
     // ✅ Update packed status
     public void setItemPackedStatus(int itemId, boolean packed) {
@@ -312,15 +297,7 @@ public List<ListItem> getItemByListId(int listId) {
         return 0;
     }
 
-    public int createPackingList(PackingList list) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public List<ListItem> getItemsByListId(int listId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    // ✅ Inner model class for items
+    // ✅ Inner model class for list items
     public static class ListItem {
         private int id;
         private String name;
@@ -340,3 +317,4 @@ public List<ListItem> getItemByListId(int listId) {
         public void setPacked(boolean packed) { this.packed = packed; }
     }
 }
+
