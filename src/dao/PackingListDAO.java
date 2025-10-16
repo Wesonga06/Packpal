@@ -28,7 +28,7 @@ public class PackingListDAO {
             """);
 
             stmt.execute("""
-                CREATE TABLE IF NOT EXISTS packing_list (
+                CREATE TABLE IF NOT EXISTS packing_lists (
                     id INTEGER PRIMARY KEY AUTO_INCREMENT,
                     user_id INTEGER,
                     list_name VARCHAR(100),
@@ -57,7 +57,7 @@ public class PackingListDAO {
             """);
 
             stmt.execute("""
-                INSERT IGNORE INTO packing_list (id, user_id, list_name, destination, dates, type, description)
+                INSERT IGNORE INTO packing_lists (id, user_id, list_name, destination, dates, type, description)
                 VALUES (1, 1, 'Weekend Getaway', 'Beach', '2025-10-15 to 2025-10-17', 'Weekend', 'Sample trip')
             """);
 
@@ -91,7 +91,7 @@ public class PackingListDAO {
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO packing_list (user_id, list_name, destination, dates, type, description) VALUES (?, ?, ?, ?, ?, ?)",
+                     "INSERT INTO packing_lists (user_id, list_name, destination, dates, type, description) VALUES (?, ?, ?, ?, ?, ?)",
                      Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setInt(1, USER_ID);
