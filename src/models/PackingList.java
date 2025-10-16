@@ -127,5 +127,9 @@ public class PackingList {
     public void setPackedItemsCount(int packedItemsCount) {
         this.packedItemsCount = packedItemsCount;
     }
+
+    public void setSubtitle(String subtitle) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }
 
