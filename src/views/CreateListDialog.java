@@ -177,40 +177,42 @@ public class CreateListDialog extends JDialog {
     }
     
     private void generateList() {
-        String listName = listNameField.getText().trim();
-        if (listName.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "Please enter a trip name.",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
-        PackingList list = new PackingList();
-        list.setUserId(currentUser.getUserId());
-        list.setListName(listName);
-        list.setDescription(descriptionField.getText().trim());
-        list.setDestination(destinationField.getText().trim());
-        
-        java.util.Date startDate = (java.util.Date) startDateSpinner.getValue();
-        java.util.Date endDate = (java.util.Date) endDateSpinner.getValue();
-        list.setStartDate(new Date(startDate.getTime()));
-        list.setEndDate(new Date(endDate.getTime()));
-        list.setTripType(tripTypeCombo.getSelectedItem().toString());
-        
-        // Fixed: Use correct fields and parameters for DAO method
-        String dates = dateField.getText().trim();  // Assuming dateField is defined; if not, format from spinners
-        String type = tripTypeCombo.getSelectedItem().toString();
-        int listId = dao.createPackingList(listName, destinationField.getText().trim(), dates, type);
-        if(listId > 0){
-            JOptionPane.showMessageDialog(this, "Packing List created with ID: " + listId);
-            new PackingListView(listId);
-            dispose();
-        } else{
-            JOptionPane.showMessageDialog(this, "Failed to create packing list.");
-        }
+    String listName = listNameField.getText().trim();
+    String description = descriptionField.getText().trim();
+    String destination = destinationField.getText().trim();
+    String tripType = tripTypeCombo.getSelectedItem().toString();
+
+    if (listName.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+            "Please enter a trip name.",
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
+        return;
     }
-    
+
+    // Create and populate model
+    PackingList list = new PackingList();
+    list.setUserId(currentUser.getUserId());
+    list.setListName(listName);
+    list.setDescription(description);
+    list.setDestination(destination);
+    list.setTripType(tripType);
+
+    java.util.Date startDate = (java.util.Date) startDateSpinner.getValue();
+    java.util.Date endDate = (java.util.Date) endDateSpinner.getValue();
+    list.setStartDate(new Date(startDate.getTime()));
+    list.setEndDate(new Date(endDate.getTime()));
+
+    // Call DAO to save it
+    int listId = dao.createPackingList(list);
+    if (listId > 0) {
+        JOptionPane.showMessageDialog(this, "Packing List created successfully!");
+        dispose(); // Close dialog after success
+    } else {
+        JOptionPane.showMessageDialog(this, "Failed to create packing list.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
+
     // Removed erroneous static inner classes; add dateField if needed
     private JTextField dateField = new JTextField();  // Added if missing; adjust as needed
 }

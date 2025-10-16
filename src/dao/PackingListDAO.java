@@ -47,7 +47,7 @@ public class PackingListDAO {
                     list_id INTEGER,
                     name VARCHAR(100),
                     packed BOOLEAN DEFAULT FALSE,
-                    FOREIGN KEY (list_id) REFERENCES packing_list(id)
+                    FOREIGN KEY (list_id) REFERENCES packing_lists(id)
                 )
             """);
 
@@ -75,53 +75,32 @@ public class PackingListDAO {
     }
 
     // ✅ Create a new list
-    public int createPackingList(String name, String destination, String dates, String type) {
-        if (name == null || name.isEmpty() || destination == null || destination.isEmpty()) {
-            System.err.println("❌ Invalid input");
-            return -1;
+    public int createPackingList(PackingList list) {
+    int listId = -1;
+    String sql = "INSERT INTO packing_lists (user_id, list_name, description, destination, start_date, end_date, trip_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+    try (Connection conn = DatabaseConfig.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+        stmt.setInt(1, list.getUserId());
+        stmt.setString(2, list.getListName());
+        stmt.setString(3, list.getDescription());
+        stmt.setString(4, list.getDestination());
+        stmt.setDate(5, list.getStartDate());
+        stmt.setDate(6, list.getEndDate());
+        stmt.setString(7, list.getTripType());
+        stmt.executeUpdate();
+
+        ResultSet rs = stmt.getGeneratedKeys();
+        if (rs.next()) {
+            listId = rs.getInt(1);
         }
-
-        String safeName = name == null ? "" : name.trim();
-        String safeDest = destination == null ? "" : destination.trim();
-        String safeDates = dates == null ? "" : dates.trim();
-        String safeType = type == null ? "" : type.trim();
-        String safeDescription = (description != null && description.getText() != null)
-                ? description.getText().trim()
-                : "";
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO packing_lists (user_id, list_name, destination, dates, type, description) VALUES (?, ?, ?, ?, ?, ?)",
-                     Statement.RETURN_GENERATED_KEYS)) {
-
-            stmt.setInt(1, USER_ID);
-            stmt.setString(2, safeName);
-            stmt.setString(3, safeDest);
-            stmt.setString(4, safeDates);
-            stmt.setString(5, safeType);
-            stmt.setString(6, safeDescription);
-
-            int affected = stmt.executeUpdate();
-            if (affected == 0) {
-                System.err.println("❌ Creating list failed");
-                return -1;
-            }
-
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    int id = keys.getInt(1);
-                    addDefaultItems(id, type);
-                    return id;
-                }
-            }
-
-        } catch (SQLException e) {
-            System.err.println("❌ SQL Error in createPackingList: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        return -1;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+    return listId;
+}
+
 
     // ✅ Get lists
     public List<PackingList> getLists() {
@@ -132,7 +111,7 @@ public class PackingListDAO {
                        COUNT(li.id) AS item_count,
                        SUM(CASE WHEN li.packed = 1 THEN 1 ELSE 0 END) AS packed_count,
                        pl.type
-                FROM packing_list pl
+                FROM packing_lists pl
                 LEFT JOIN list_items li ON pl.id = li.list_id
                 WHERE pl.user_id = ?
                 GROUP BY pl.id
@@ -291,6 +270,34 @@ public class PackingListDAO {
         public int getId() { return id; }
         public String getName() { return name; }
         public String getSubtitle() { return subtitle; }
+
+        private String getListName() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        private String getDescription() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        private int getUserId() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        private Date getStartDate() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        private String getDestination() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        private Date getEndDate() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        private String getTripType() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
     }
 
     public static class ListItem {

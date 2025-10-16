@@ -17,6 +17,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.table.DefaultTableModel;
 
 public class DashboardView extends JFrame {
     private DashboardController controller;
@@ -135,75 +136,153 @@ public class DashboardView extends JFrame {
         topBar.repaint();
     }
 
-    private JPanel createMyListsPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        // Create Button (New)
-        RoundedButton createBtn = new RoundedButton("Create New List", UIConstants.PRIMARY_BLUE);
-        createBtn.setPreferredSize(new Dimension(300, 50));
-        createBtn.addActionListener(e -> {
-            new CreateNewListView();
-            // Optional: dispose() this if modal
-        });
-        panel.add(createBtn, BorderLayout.NORTH);
-        panel.add(Box.createRigidArea(new Dimension(0, 10)), BorderLayout.NORTH);  // Spacing
-
-        // Search Bar
-        RoundedTextField searchField = new RoundedTextField(20);
-        searchField.setText("🔍 Search lists.");
-        searchField.setEditable(true);
-        searchField.setPreferredSize(new Dimension(300, 50));
-        JPanel searchPanel = new JPanel(new BorderLayout());
-        searchPanel.add(searchField, BorderLayout.CENTER);
-        searchPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 0));
-        panel.add(searchPanel, BorderLayout.NORTH);
-
-        // Lists (Scrollable)
-        JPanel listsPanel = new JPanel();
-        listsPanel.setLayout(new BoxLayout(listsPanel, BoxLayout.Y_AXIS));
-        listsPanel.setBackground(Color.WHITE);
-
-        // Load from DB
-        PackingListDAO dao = new PackingListDAO();
-        dao.initSchema();  // Ensure tables
-        List<PackingListDAO.PackingList> dbLists = dao.getLists();
-
-        // Dynamic sections (group by status/type)
-        String[][] recent = dbLists.stream()
-                .filter(l -> l.getSubtitle().contains("packed") || l.getSubtitle().contains("in progress"))
-                .limit(2)
-                .map(l -> new String[]{l.getName(), l.getSubtitle()})
-                .toArray(String[][]::new);
-        String[][] templates = dbLists.stream()
-                .filter(l -> l.getSubtitle().contains("Template"))
-                .map(l -> new String[]{l.getName(), l.getSubtitle()})
-                .toArray(String[][]::new);
-        String[][] shared = dbLists.stream()
-                .filter(l -> l.getSubtitle().contains("Shared"))
-                .map(l -> new String[]{l.getName(), l.getSubtitle()})
-                .toArray(String[][]::new);
-
-        addSection(listsPanel, "Recent", recent);
-        addSection(listsPanel, "Templates", templates);
-        addSection(listsPanel, "Shared", shared);
-
-        JScrollPane scroll = new JScrollPane(listsPanel);
-        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        panel.add(scroll, BorderLayout.CENTER);
-
-        return panel;
-    }
-
     private JPanel createSettingsPanel() {
-        // (Unchanged from previous; profile/toggles using DatabaseConfig if extended)
-        // ... (paste the full createSettingsPanel from earlier response)
-        // For brevity, assume it's the same as before
-        JPanel panel = new JPanel(new BorderLayout());
-        // ... (full code from previous)
-        return panel;
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setBackground(Color.WHITE);
+    panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+    // Scrollable main content
+    JPanel content = new JPanel();
+    content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+    content.setBackground(Color.WHITE);
+
+    // ===== PROFILE CARD =====
+    ShadowPanel profileCard = new ShadowPanel(new BorderLayout());
+    profileCard.setPreferredSize(new Dimension(300, 200));
+    profileCard.setMaximumSize(new Dimension(300, 200));
+
+    // Avatar Placeholder
+    JPanel avatarPanel = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(UIConstants.PRIMARY_BLUE);
+            g2.fillOval(0, 0, 60, 60);
+            g2.setColor(Color.WHITE);
+            g2.setFont(new Font("Arial", Font.BOLD, 24));
+            String initials = ProfileModel.getName().substring(0, Math.min(2, ProfileModel.getName().length())).toUpperCase();
+            g2.drawString(initials, 15, 45);
+            g2.dispose();
+        }
+    };
+    avatarPanel.setPreferredSize(new Dimension(70, 70));
+    avatarPanel.setBackground(Color.WHITE);
+
+    // Profile Info Panel
+    JPanel profileInfo = new JPanel(new GridBagLayout());
+    profileInfo.setOpaque(false);
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(5, 10, 5, 10);
+    gbc.anchor = GridBagConstraints.WEST;
+
+    JLabel nameLabel = new JLabel("Name");
+    nameLabel.setFont(UIConstants.TITLE_FONT.deriveFont(12f));
+    nameLabel.setForeground(Color.GRAY);
+    JTextField nameField = new JTextField(ProfileModel.getName());
+    nameField.setPreferredSize(new Dimension(200, 30));
+    nameField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+    ));
+    gbc.gridy = 0;
+    profileInfo.add(nameLabel, gbc);
+    gbc.gridy++;
+    profileInfo.add(nameField, gbc);
+
+    JLabel emailLabel = new JLabel("Email");
+    emailLabel.setFont(UIConstants.TITLE_FONT.deriveFont(12f));
+    emailLabel.setForeground(Color.GRAY);
+    JTextField emailField = new JTextField(ProfileModel.getEmail());
+    emailField.setPreferredSize(new Dimension(200, 30));
+    emailField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+    ));
+    gbc.gridy++;
+    profileInfo.add(emailLabel, gbc);
+    gbc.gridy++;
+    profileInfo.add(emailField, gbc);
+
+    profileCard.add(avatarPanel, BorderLayout.WEST);
+    profileCard.add(profileInfo, BorderLayout.CENTER);
+
+    // Save Button
+    RoundedButton saveProfileBtn = new RoundedButton("Save Profile", UIConstants.PRIMARY_BLUE);
+    saveProfileBtn.setPreferredSize(new Dimension(120, 35));
+    saveProfileBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+    saveProfileBtn.addActionListener(e -> {
+        ProfileModel.setName(nameField.getText());
+        ProfileModel.setEmail(emailField.getText());
+        avatarPanel.repaint();
+        JOptionPane.showMessageDialog(panel, "Profile updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+    });
+    profileCard.add(saveProfileBtn, BorderLayout.SOUTH);
+
+    content.add(profileCard);
+    content.add(Box.createRigidArea(new Dimension(0, 20)));
+
+    // ===== GENERAL SETTINGS =====
+    JLabel settingsTitle = new JLabel("General Settings");
+    settingsTitle.setFont(UIConstants.TITLE_FONT.deriveFont(16f).deriveFont(Font.BOLD));
+    settingsTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+    content.add(settingsTitle);
+    content.add(Box.createRigidArea(new Dimension(0, 10)));
+
+    // Settings List
+    String[][] settings = {
+        {"Push Notifications", "Enable app notifications"},
+        {"Dark Mode", "Switch to dark theme"},
+        {"Auto-Sync Lists", "Sync packing lists across devices"}
+    };
+
+    for (String[] setting : settings) {
+        ShadowPanel toggleCard = new ShadowPanel(new BorderLayout());
+        toggleCard.setPreferredSize(new Dimension(300, 60));
+        toggleCard.setMaximumSize(new Dimension(300, 60));
+
+        JPanel toggleLeft = new JPanel(new BorderLayout());
+        toggleLeft.setOpaque(false);
+
+        JLabel toggleLabel = new JLabel(setting[0]);
+        toggleLabel.setFont(UIConstants.BODY_FONT.deriveFont(16f));
+
+        JLabel descLabel = new JLabel(setting[1]);
+        descLabel.setFont(UIConstants.BODY_FONT.deriveFont(12f));
+        descLabel.setForeground(Color.GRAY);
+
+        toggleLeft.add(toggleLabel, BorderLayout.NORTH);
+        toggleLeft.add(descLabel, BorderLayout.SOUTH);
+
+        JToggleButton toggleSwitch = new JToggleButton();
+        toggleSwitch.setPreferredSize(new Dimension(50, 25));
+        toggleSwitch.setFocusPainted(false);
+        toggleSwitch.setBackground(Color.LIGHT_GRAY);
+        toggleSwitch.addItemListener(e -> {
+            if (toggleSwitch.isSelected()) {
+                toggleSwitch.setBackground(UIConstants.PRIMARY_BLUE);
+            } else {
+                toggleSwitch.setBackground(Color.LIGHT_GRAY);
+            }
+        });
+
+        toggleCard.add(toggleLeft, BorderLayout.CENTER);
+        toggleCard.add(toggleSwitch, BorderLayout.EAST);
+
+        content.add(toggleCard);
+        content.add(Box.createRigidArea(new Dimension(0, 10)));
     }
+
+    // Scroll Pane
+    JScrollPane scrollPane = new JScrollPane(content);
+    scrollPane.setBorder(null);
+    scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    panel.add(scrollPane, BorderLayout.CENTER);
+
+    return panel;
+}
+
 
     private void addSection(JPanel parent, String title, String[][] listItems) {
         JLabel sectionTitleLabel = new JLabel(title);
@@ -257,6 +336,61 @@ public class DashboardView extends JFrame {
 
         parent.add(Box.createRigidArea(new Dimension(0, 20)));
     }
+
+   private JPanel createMyListsPanel() {
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setBackground(Color.WHITE);
+    panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+    JLabel title = new JLabel("My Packing Lists");
+    title.setFont(new Font("Arial", Font.BOLD, 20));
+    title.setForeground(new Color(33, 150, 243));
+    title.setHorizontalAlignment(SwingConstants.CENTER);
+    panel.add(title, BorderLayout.NORTH);
+
+    // Table model
+    String[] columns = {"List ID", "List Name", "Destination", "Date Created"};
+    DefaultTableModel tableModel = new DefaultTableModel(columns, 0);
+
+    // Example data (replace with database or controller call)
+    Object[][] data = {
+        {1, "Beach Trip", "Mombasa", "2025-10-14"},
+        {2, "Business Trip", "Nairobi", "2025-10-10"}
+    };
+    for (Object[] row : data) {
+        tableModel.addRow(row);
+    }
+
+    JTable table = new JTable(tableModel);
+    table.setRowHeight(25);
+    table.setFillsViewportHeight(true);
+    table.setGridColor(Color.LIGHT_GRAY);
+    table.setSelectionBackground(new Color(224, 242, 241));
+
+    JScrollPane scrollPane = new JScrollPane(table);
+    scrollPane.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+    panel.add(scrollPane, BorderLayout.CENTER);
+
+    // Button to add a new list
+    JButton addListBtn = new JButton("Create New List");
+    addListBtn.setBackground(new Color(33, 150, 243));
+    addListBtn.setForeground(Color.WHITE);
+    addListBtn.setFocusPainted(false);
+    addListBtn.setFont(new Font("Arial", Font.BOLD, 14));
+
+    addListBtn.addActionListener(e -> {
+        JOptionPane.showMessageDialog(panel, "Create List Dialog Coming Soon!");
+    });
+
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.setBackground(Color.WHITE);
+    buttonPanel.add(addListBtn);
+
+    panel.add(buttonPanel, BorderLayout.SOUTH);
+
+    return panel;
+}
+
 
     // TabChangeListener and getters (unchanged)
     private class TabChangeListener implements ChangeListener {
