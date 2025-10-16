@@ -5,17 +5,18 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import models.PackingList;
-import dao.ListItem;
 
-public class PackingListDAO{
-    private static final int USER_ID = 1;
-    
-    private Connection getConnection() throws SQLException{
+public class PackingListDAO {
+
+    private static final int USER_ID = 1; // Temporary user
+
+    private Connection getConnection() throws SQLException {
         return DatabaseConfig.getConnection();
     }
-    
-    public void initSchema(){
-         try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+
+    // ✅ Initialize database schema
+    public void initSchema() {
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS users (
@@ -63,10 +64,14 @@ public class PackingListDAO{
             e.printStackTrace();
         }
     }
-    
-     public int createPackingList(PackingList list) {
+
+    // ✅ Create new packing list
+    public int createPackingList(PackingList list) {
         int listId = -1;
-        String sql = "INSERT INTO packing_lists (user_id, list_name, description, destination, start_date, end_date, trip_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = """
+            INSERT INTO packing_lists (user_id, list_name, description, destination, start_date, end_date, trip_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """;
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -80,29 +85,21 @@ public class PackingListDAO{
             stmt.setString(7, list.getTripType());
             stmt.executeUpdate();
 
-            try (ResultSet rs = stmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    listId = rs.getInt(1);
-                }
-            }
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) listId = rs.getInt(1);
 
-            // Add default items based on trip type
-            if (listId > 0) {
-                addDefaultItems(listId, list.getTripType());
-            }
+            if (listId > 0) addDefaultItems(listId, list.getTripType());
 
         } catch (SQLException e) {
             System.err.println("❌ Error creating packing list: " + e.getMessage());
-            e.printStackTrace();
         }
 
         return listId;
     }
 
-    // ✅ Retrieve all lists for current user
+    // ✅ Retrieve all lists
     public List<PackingList> getLists() {
         List<PackingList> lists = new ArrayList<>();
-
         String sql = """
             SELECT pl.id, pl.list_name, pl.destination,
                    COUNT(li.id) AS item_count,
@@ -140,13 +137,12 @@ public class PackingListDAO{
 
         } catch (SQLException e) {
             System.err.println("❌ Error getting lists: " + e.getMessage());
-            e.printStackTrace();
         }
 
         return lists;
     }
 
-    // ✅ Add default items based on type
+    // ✅ Add default items for a list type
     private void addDefaultItems(int listId, String type) {
         String[] defaults = switch (type) {
             case "Beach" -> new String[]{"Swimsuit", "Towel", "Sunscreen"};
@@ -157,22 +153,18 @@ public class PackingListDAO{
         };
 
         String sql = "INSERT INTO list_items (list_id, name) VALUES (?, ?)";
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             for (String item : defaults) {
                 stmt.setInt(1, listId);
                 stmt.setString(2, item);
                 stmt.executeUpdate();
             }
-
         } catch (SQLException e) {
             System.err.println("❌ Error adding default items: " + e.getMessage());
         }
     }
 
-    // ✅ Retrieve list items
+    // ✅ Retrieve all items in a list
     public List<ListItem> getItemsByListId(int listId) {
         List<ListItem> items = new ArrayList<>();
         String sql = "SELECT id, name, packed FROM list_items WHERE list_id = ?";
@@ -193,28 +185,25 @@ public class PackingListDAO{
 
         } catch (SQLException e) {
             System.err.println("❌ Error retrieving items: " + e.getMessage());
-            e.printStackTrace();
         }
 
         return items;
     }
 
-    // ✅ Update packed status
+    // ✅ Update item packed status
     public void setItemPackedStatus(int itemId, boolean packed) {
-        String sql = "UPDATE list_items SET packed = ? WHERE id = ?";
         try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+             PreparedStatement stmt = conn.prepareStatement(
+                     "UPDATE list_items SET packed = ? WHERE id = ?")) {
             stmt.setBoolean(1, packed);
             stmt.setInt(2, itemId);
             stmt.executeUpdate();
-
         } catch (SQLException e) {
             System.err.println("❌ Error updating item packed status: " + e.getMessage());
         }
     }
 
-    // ✅ Delete item
+    // ✅ Delete an item
     public void deleteItem(int listId, int itemId) {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(
@@ -227,49 +216,82 @@ public class PackingListDAO{
         }
     }
 
-    public int createPackingList(String name, String dest, String dates, String type) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
+    // ✅ Count total and packed items
     public int getTotalItemsCount(int listId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) FROM list_items WHERE list_id = ?")) {
+            stmt.setInt(1, listId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            System.err.println("❌ Error getting total items count: " + e.getMessage());
+        }
+        return 0;
     }
 
     public int getPackedItemsCount(int listId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) FROM list_items WHERE list_id = ? AND packed = 1")) {
+            stmt.setInt(1, listId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            System.err.println("❌ Error getting packed items count: " + e.getMessage());
+        }
+        return 0;
     }
+
+    public ListItem getListItem(int itemId) {
+    String sql = "SELECT id, name, packed FROM list_items WHERE id = ?";
+    ListItem item = null;
+
+    try (Connection conn = getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        stmt.setInt(1, itemId);
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next()) {
+            item = new ListItem(
+                rs.getInt("id"),
+                rs.getString("name"),
+                rs.getBoolean("packed")
+            );
+        }
+
+    } catch (SQLException e) {
+        System.err.println("❌ Error retrieving list item: " + e.getMessage());
+        e.printStackTrace();
+    }
+
+    return item;
+}
 
     public List<ListItem> getListItems(int listId) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
+    public int createPackingList(String name, String dest, String dates, String type) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    // ✅ Inner class for List Items
     public static class ListItem {
+        private int id;
+        private String name;
+        private boolean packed;
 
-        public ListItem() {
+        public ListItem(int id, String name, boolean packed) {
+            this.id = id;
+            this.name = name;
+            this.packed = packed;
         }
 
-        private ListItem(int aInt, String string, boolean aBoolean) {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
+        public int getId() { return id; }
+        public String getName() { return name; }
+        public boolean isPacked() { return packed; }
 
-        public boolean isPacked() {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        public String getName() {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        public int getId() {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        public void setName(String newName) {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        public void setPacked(boolean selected) {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
+        public void setName(String name) { this.name = name; }
+        public void setPacked(boolean packed) { this.packed = packed; }
     }
 }
