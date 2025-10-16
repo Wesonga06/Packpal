@@ -8,13 +8,13 @@ import models.PackingList;
 
 public class PackingListDAO {
 
-    private static final int USER_ID = 1; // Temporary user
+    private static final int USER_ID = 1; // Temporary user for demo
 
     private Connection getConnection() throws SQLException {
         return DatabaseConfig.getConnection();
     }
 
-    // ✅ Initialize database schema
+    // ✅ Initialize schema
     public void initSchema() {
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
 
@@ -66,38 +66,54 @@ public class PackingListDAO {
     }
 
     // ✅ Create new packing list
-    public int createPackingList(PackingList list) {
-        int listId = -1;
-        String sql = """
-            INSERT INTO packing_lists (user_id, list_name, description, destination, start_date, end_date, trip_type)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """;
+    public int createPackingList(String name, String dest, String dates, String type) {
+    int listId = -1;
+    String sql = """
+        INSERT INTO packing_lists (user_id, list_name, description, destination, start_date, end_date, trip_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """;
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+    try (Connection conn = getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            stmt.setInt(1, list.getUserId());
-            stmt.setString(2, list.getListName());
-            stmt.setString(3, list.getDescription());
-            stmt.setString(4, list.getDestination());
-            stmt.setDate(5, list.getStartDate());
-            stmt.setDate(6, list.getEndDate());
-            stmt.setString(7, list.getTripType());
-            stmt.executeUpdate();
+        stmt.setInt(1, 1); // default user_id for now
+        stmt.setString(2, name);
+        stmt.setString(3, "Auto-generated list for " + dest);
+        stmt.setString(4, dest);
 
-            ResultSet rs = stmt.getGeneratedKeys();
-            if (rs.next()) listId = rs.getInt(1);
-
-            if (listId > 0) addDefaultItems(listId, list.getTripType());
-
-        } catch (SQLException e) {
-            System.err.println("❌ Error creating packing list: " + e.getMessage());
+        // Parse date input (dd/mm/yyyy → yyyy-mm-dd)
+        java.sql.Date sqlDate = null;
+        try {
+            String[] parts = dates.split("/");
+            if (parts.length == 3) {
+                String formatted = parts[2] + "-" + parts[1] + "-" + parts[0];
+                sqlDate = java.sql.Date.valueOf(formatted);
+            }
+        } catch (Exception ex) {
+            sqlDate = new java.sql.Date(System.currentTimeMillis());
         }
 
-        return listId;
+        stmt.setDate(5, sqlDate);
+        stmt.setDate(6, sqlDate);
+        stmt.setString(7, type);
+
+        stmt.executeUpdate();
+
+        ResultSet rs = stmt.getGeneratedKeys();
+        if (rs.next()) listId = rs.getInt(1);
+
+        if (listId > 0) addDefaultItems(listId, type);
+
+    } catch (SQLException e) {
+        System.err.println("❌ Error creating packing list: " + e.getMessage());
+        e.printStackTrace();
     }
 
-    // ✅ Retrieve all lists
+    return listId;
+}
+
+
+    // ✅ Retrieve all packing lists
     public List<PackingList> getLists() {
         List<PackingList> lists = new ArrayList<>();
         String sql = """
@@ -142,7 +158,7 @@ public class PackingListDAO {
         return lists;
     }
 
-    // ✅ Add default items for a list type
+    // ✅ Add default items based on trip type
     private void addDefaultItems(int listId, String type) {
         String[] defaults = switch (type) {
             case "Beach" -> new String[]{"Swimsuit", "Towel", "Sunscreen"};
@@ -165,7 +181,7 @@ public class PackingListDAO {
     }
 
     // ✅ Retrieve all items in a list
-    public List<ListItem> getItemsByListId(int listId) {
+    public List<ListItem> getListItems(int listId) {
         List<ListItem> items = new ArrayList<>();
         String sql = "SELECT id, name, packed FROM list_items WHERE list_id = ?";
 
@@ -184,13 +200,68 @@ public class PackingListDAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("❌ Error retrieving items: " + e.getMessage());
+            System.err.println("❌ Error retrieving list items: " + e.getMessage());
         }
 
         return items;
     }
 
-    // ✅ Update item packed status
+    // ✅ Retrieve one specific list item
+    public ListItem getListItem(int itemId) {
+        String sql = "SELECT id, name, packed FROM list_items WHERE id = ?";
+        ListItem item = null;
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, itemId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                item = new ListItem(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getBoolean("packed")
+                );
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error retrieving list item: " + e.getMessage());
+        }
+
+        return item;
+    }
+    
+    // ✅ Retrieve items for a given packing list (compatible with ListDetailView)
+public List<ListItem> getItemByListId(int listId) {
+    List<ListItem> items = new ArrayList<>();
+    String sql = "SELECT id, name, packed FROM list_items WHERE list_id = ?";
+
+    try (Connection conn = getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        stmt.setInt(1, listId);
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next()) {
+            ListItem item = new ListItem(
+                rs.getInt("id"),
+                rs.getString("name"),
+                rs.getBoolean("packed")
+            );
+            items.add(item);
+        }
+
+    } catch (SQLException e) {
+        System.err.println("❌ Error getting items by list ID: " + e.getMessage());
+        e.printStackTrace();
+    }
+
+    return items;
+}
+
+
+    // ✅ Update packed status
     public void setItemPackedStatus(int itemId, boolean packed) {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(
@@ -203,7 +274,7 @@ public class PackingListDAO {
         }
     }
 
-    // ✅ Delete an item
+    // ✅ Delete item
     public void deleteItem(int listId, int itemId) {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(
@@ -216,7 +287,7 @@ public class PackingListDAO {
         }
     }
 
-    // ✅ Count total and packed items
+    // ✅ Count totals
     public int getTotalItemsCount(int listId) {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) FROM list_items WHERE list_id = ?")) {
@@ -241,41 +312,15 @@ public class PackingListDAO {
         return 0;
     }
 
-    public ListItem getListItem(int itemId) {
-    String sql = "SELECT id, name, packed FROM list_items WHERE id = ?";
-    ListItem item = null;
-
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-        stmt.setInt(1, itemId);
-        ResultSet rs = stmt.executeQuery();
-
-        if (rs.next()) {
-            item = new ListItem(
-                rs.getInt("id"),
-                rs.getString("name"),
-                rs.getBoolean("packed")
-            );
-        }
-
-    } catch (SQLException e) {
-        System.err.println("❌ Error retrieving list item: " + e.getMessage());
-        e.printStackTrace();
-    }
-
-    return item;
-}
-
-    public List<ListItem> getListItems(int listId) {
+    public int createPackingList(PackingList list) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    public int createPackingList(String name, String dest, String dates, String type) {
+    public List<ListItem> getItemsByListId(int listId) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    // ✅ Inner class for List Items
+    // ✅ Inner model class for items
     public static class ListItem {
         private int id;
         private String name;
