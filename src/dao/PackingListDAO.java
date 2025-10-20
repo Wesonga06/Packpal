@@ -207,6 +207,47 @@ public class PackingListDAO {
         }
         return 0;
     }
+    
+    public void initSchema() {
+    // Optional: create table if not exists
+    try (Connection conn = DatabaseConfig.getConnection();
+         Statement stmt = conn.createStatement()) {
+        String sql = """
+            CREATE TABLE IF NOT EXISTS packing_list (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,
+                destination TEXT,
+                dates TEXT,
+                type TEXT
+            );
+        """;
+        stmt.execute(sql);
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+    
+    public int createPackingList(String name, String destination, String dates, String type) {
+    try (Connection conn = DatabaseConfig.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(
+             "INSERT INTO packing_list (name, destination, dates, type) VALUES (?, ?, ?, ?)",
+             Statement.RETURN_GENERATED_KEYS)) {
+        stmt.setString(1, name);
+        stmt.setString(2, destination);
+        stmt.setString(3, dates);
+        stmt.setString(4, type);
+        int affected = stmt.executeUpdate();
+        if (affected > 0) {
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) return rs.getInt(1);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return -1;
+}
+
+
 
     // ✅ Get packed items count
     public int getPackedItemsCount(int listId) {
