@@ -25,6 +25,12 @@ import services.WeatherService.WeatherData;
 public class DashboardView extends JFrame {
     private DashboardController controller;
     private JTabbedPane tabbedPane;
+        private JButton settingsButton;
+    private JPanel sidebarPanel;
+    private JButton dashboardButton;
+    private JButton listsButton;
+    
+
     private JPanel topBar;
     private JButton backButton;
     private List<RoundedButton> tabButtons;
@@ -63,35 +69,120 @@ public class DashboardView extends JFrame {
     }
 
     private void initializeUI() {
-        setPreferredSize(new Dimension(500, 700));
-        setMinimumSize(new Dimension(450, 650));
-        setResizable(true);
+    setPreferredSize(new Dimension(500, 700));
+    setMinimumSize(new Dimension(450, 650));
+    setResizable(true);
 
-        // Top Bar
-        topBar = createTopBar();
-        add(topBar, BorderLayout.NORTH);
+    // Top Bar
+    topBar = createTopBar();
+    add(topBar, BorderLayout.NORTH);
 
-        // Tabbed Content
-        tabbedPane = new JTabbedPane();
-        tabbedPane.setTabPlacement(JTabbedPane.TOP);
-        tabbedPane.setPreferredSize(new Dimension(500, 600));
-        tabbedPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        tabbedPane.addChangeListener(new TabChangeListener());
+    // Tabbed Content
+    tabbedPane = new JTabbedPane();
+    tabbedPane.setTabPlacement(JTabbedPane.TOP);
+    tabbedPane.setPreferredSize(new Dimension(500, 600));
+    tabbedPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+    tabbedPane.addChangeListener(new TabChangeListener());
 
-        // Add My Lists Tab
-        JPanel myListsPanel = createMyListsPanel();
-        tabbedPane.addTab(null, myListsPanel);
+    // Add My Lists Tab
+    JPanel myListsPanel = createMyListsPanel();
+    tabbedPane.addTab(null, myListsPanel);
 
-        // Add Settings Tab
-        JPanel settingsPanel = createSettingsPanel();
-        tabbedPane.addTab(null, settingsPanel);
+    // Add Settings Tab
+    JPanel settingsPanel = createSettingsPanel();
+    tabbedPane.addTab(null, settingsPanel);
 
-        // Set Initial Tab
-        tabbedPane.setSelectedIndex(0);
-        updateTabLabels();
+    // Set Initial Tab
+    tabbedPane.setSelectedIndex(0);
+    updateTabLabels();
 
-        add(tabbedPane, BorderLayout.CENTER);
-    }
+    add(tabbedPane, BorderLayout.CENTER);
+
+    // Sidebar panel
+    sidebarPanel = new JPanel();
+    sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
+    sidebarPanel.setBackground(new Color(245, 247, 250));
+    sidebarPanel.setPreferredSize(new Dimension(180, getHeight()));
+    sidebarPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
+
+    // Title or logo
+    JLabel title = new JLabel("PackPal");
+    title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+    title.setForeground(new Color(70, 160, 255));
+    title.setAlignmentX(Component.CENTER_ALIGNMENT);
+    sidebarPanel.add(title);
+    sidebarPanel.add(Box.createVerticalStrut(30));
+
+    // Buttons
+    dashboardButton = createSidebarButton("🏠 Dashboard");
+    dashboardButton.addActionListener(e -> showDashboardPanel());
+    sidebarPanel.add(dashboardButton);
+    sidebarPanel.add(Box.createVerticalStrut(10));
+
+    listsButton = createSidebarButton("📦 My Lists");
+    listsButton.addActionListener(e -> openListPanel());
+    sidebarPanel.add(listsButton);
+    sidebarPanel.add(Box.createVerticalStrut(10));
+
+    // ✅ Settings button initialized here AFTER sidebarPanel exists
+    settingsButton = createSettingsButton("⚙️ Settings");
+    settingsButton.addActionListener(e -> openSettingsPage());
+    sidebarPanel.add(settingsButton);
+
+    // Add sidebar to frame (left side)
+    add(sidebarPanel, BorderLayout.WEST);
+}
+
+    
+    // Show the main dashboard panel
+private void showDashboardPanel() {
+    getContentPane().removeAll();
+
+    JPanel dashboardPanel = new JPanel();
+    dashboardPanel.setLayout(new BorderLayout());
+    dashboardPanel.setBackground(Color.WHITE);
+
+    JLabel title = new JLabel("Welcome to your Dashboard", SwingConstants.CENTER);
+    title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+    title.setForeground(new Color(70, 160, 255));
+
+    dashboardPanel.add(title, BorderLayout.CENTER);
+
+    // Re-add the sidebar on the left
+    add(sidebarPanel, BorderLayout.WEST);
+    add(dashboardPanel, BorderLayout.CENTER);
+
+    revalidate();
+    repaint();
+}
+
+// Show the Packing Lists panel
+private void openListPanel() {
+    getContentPane().removeAll();
+
+    JPanel listPanel = new JPanel(new BorderLayout());
+    listPanel.setBackground(Color.WHITE);
+
+    JLabel title = new JLabel("My Packing Lists", SwingConstants.CENTER);
+    title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+    title.setForeground(new Color(70, 160, 255));
+
+    listPanel.add(title, BorderLayout.NORTH);
+
+    // Example content area
+    JTextArea content = new JTextArea("Here you can manage your packing lists...");
+    content.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+    content.setEditable(false);
+    listPanel.add(new JScrollPane(content), BorderLayout.CENTER);
+
+    // Re-add the sidebar on the left
+    add(sidebarPanel, BorderLayout.WEST);
+    add(listPanel, BorderLayout.CENTER);
+
+    revalidate();
+    repaint();
+}
+
 
     private JPanel createTopBar() {
         JPanel bar = new JPanel(new BorderLayout());
@@ -310,19 +401,116 @@ public class DashboardView extends JFrame {
         worker.execute(); 
     }
 
-    private JPanel createSettingsPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+   private JPanel createSettingsPanel() {
+    JPanel settingsPanel = new JPanel(new BorderLayout());
+    settingsPanel.setBackground(Color.WHITE);
+    settingsPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
-        JLabel info = new JLabel("Settings will appear here soon...");
-        info.setHorizontalAlignment(SwingConstants.CENTER);
-        info.setFont(new Font("Arial", Font.PLAIN, 14));
-        info.setForeground(Color.GRAY);
-        panel.add(info, BorderLayout.CENTER);
+    JLabel title = new JLabel("⚙️ Settings");
+    title.setFont(new Font("Segoe UI", Font.BOLD, 20));
+    title.setForeground(new Color(70, 160, 255));
+    title.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+    settingsPanel.add(title, BorderLayout.NORTH);
 
-        return panel;
-    }
+    // Center panel for settings form
+    JPanel formPanel = new JPanel();
+    formPanel.setLayout(new GridBagLayout());
+    formPanel.setBackground(Color.WHITE);
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(10, 10, 10, 10);
+    gbc.anchor = GridBagConstraints.WEST;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
+
+    // --- NAME FIELD ---
+    gbc.gridx = 0; gbc.gridy = 0;
+    formPanel.add(new JLabel("Name:"), gbc);
+
+    JTextField nameField = new JTextField(20);
+    if (currentUser != null && currentUser.getName() != null)
+        nameField.setText(currentUser.getName());
+    gbc.gridx = 1;
+    formPanel.add(nameField, gbc);
+
+    // --- EMAIL FIELD ---
+    gbc.gridx = 0; gbc.gridy = 1;
+    formPanel.add(new JLabel("Email:"), gbc);
+
+    JTextField emailField = new JTextField(20);
+    if (currentUser != null && currentUser.getEmail() != null)
+        emailField.setText(currentUser.getEmail());
+    gbc.gridx = 1;
+    formPanel.add(emailField, gbc);
+
+    // --- SAVE BUTTON ---
+    gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+    gbc.anchor = GridBagConstraints.CENTER;
+    JButton saveButton = new JButton("💾 Save Changes");
+    saveButton.setBackground(new Color(70, 160, 255));
+    saveButton.setForeground(Color.WHITE);
+    saveButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    saveButton.setFocusPainted(false);
+    saveButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+
+    formPanel.add(saveButton, gbc);
+
+    // --- FEEDBACK LABEL ---
+    gbc.gridy = 3;
+    JLabel feedbackLabel = new JLabel("");
+    feedbackLabel.setForeground(new Color(0, 128, 0));
+    formPanel.add(feedbackLabel, gbc);
+
+    // --- SAVE ACTION ---
+    saveButton.addActionListener(e -> {
+        String newName = nameField.getText().trim();
+        String newEmail = emailField.getText().trim();
+
+        if (newName.isEmpty() || newEmail.isEmpty()) {
+            feedbackLabel.setForeground(Color.RED);
+            feedbackLabel.setText("⚠️ Please fill in all fields.");
+            return;
+        }
+
+        if (currentUser != null) {
+            currentUser.setName(newName);
+            currentUser.setEmail(newEmail);
+            feedbackLabel.setForeground(new Color(0, 128, 0));
+            feedbackLabel.setText("✅ Changes saved successfully!");
+            System.out.println("User settings updated: " + newName + " (" + newEmail + ")");
+        } else {
+            feedbackLabel.setForeground(Color.RED);
+            feedbackLabel.setText("⚠️ Unable to save. No user logged in.");
+        }
+    });
+
+    settingsPanel.add(formPanel, BorderLayout.CENTER);
+    return settingsPanel;
+}
+
+    
+    private JButton createSidebarButton(String text) {
+    JButton button = new JButton(text);
+    button.setFocusPainted(false);
+    button.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+    button.setBackground(Color.WHITE);
+    button.setForeground(Color.DARK_GRAY);
+    button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+    button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    button.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    button.addMouseListener(new java.awt.event.MouseAdapter() {
+        public void mouseEntered(java.awt.event.MouseEvent evt) {
+            button.setBackground(new Color(230, 240, 255));
+        }
+        public void mouseExited(java.awt.event.MouseEvent evt) {
+            button.setBackground(Color.WHITE);
+        }
+    });
+
+    return button;
+}
+
+
 
     private class TabChangeListener implements ChangeListener {
         @Override
@@ -330,6 +518,37 @@ public class DashboardView extends JFrame {
             updateTabLabels();
         }
     }
+    
+    // Reusable button styling method
+private JButton createSettingsButton(String text) {
+    JButton button = new JButton(text);
+    button.setFocusPainted(false);
+    button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    button.setBackground(new Color(70, 160, 255));
+    button.setForeground(Color.WHITE);
+    button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+    button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    button.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    // Optional hover effect
+    button.addMouseListener(new java.awt.event.MouseAdapter() {
+        public void mouseEntered(java.awt.event.MouseEvent evt) {
+            button.setBackground(new Color(60, 145, 240));
+        }
+
+        public void mouseExited(java.awt.event.MouseEvent evt) {
+            button.setBackground(new Color(70, 160, 255));
+        }
+    });
+
+    return button;
+}
+
+// Method to open the SettingsView
+private void openSettingsPage() {
+    SwingUtilities.invokeLater(() -> new SettingsView(currentUser));
+}
+
 
     public JTabbedPane getTabbedPane() { return tabbedPane; }
 

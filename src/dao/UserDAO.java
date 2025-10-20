@@ -128,25 +128,32 @@ public class UserDAO {
         return null;
     }
 
-    // ✏️ Update user
-    public boolean updateUser(int userId, User updatedUser) {
-        String sql = "UPDATE users SET name = ?, email = ?, password_hash = ? WHERE user_id = ?";
+    public boolean updateUser(User user, String newPassword) {
+    String sql = newPassword.isEmpty() ?
+            "UPDATE users SET name = ?, email = ? WHERE user_id = ?" :
+            "UPDATE users SET name = ?, email = ?, password = ? WHERE user_id = ?";
 
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (Connection conn = DatabaseConfig.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, updatedUser.getName());
-            pstmt.setString(2, updatedUser.getEmail());
-            pstmt.setString(3, updatedUser.getPasswordHash());
-            pstmt.setInt(4, userId);
+        stmt.setString(1, user.getName());
+        stmt.setString(2, user.getEmail());
 
-            return pstmt.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (newPassword.isEmpty()) {
+            stmt.setInt(3, user.getUserId());
+        } else {
+            stmt.setString(3, newPassword);
+            stmt.setInt(4, user.getUserId());
         }
+
+        return stmt.executeUpdate() > 0;
+
+    } catch (SQLException e) {
+        e.printStackTrace();
         return false;
     }
+}
+
 
     // Delete user
     public boolean deleteUser(int userId) {

@@ -8,7 +8,7 @@ import org.json.JSONObject;
 
 public class WeatherService {
 
-    private static final String API_KEY = "YOUR_OPENWEATHERMAP_API_KEY"; // replace with your real one
+    private static final String API_KEY = "5e0067ca6bb07812d104885a27b479de";
     private static final String API_URL = "https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=metric";
 
     // Method 1: Fetch weather (simple text summary)
