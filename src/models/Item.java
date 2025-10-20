@@ -11,10 +11,6 @@ public class Item {
     private int priority;
     private Timestamp createdAt;
 
-    // ===============================
-    // Constructors
-    // ===============================
-
     public Item() {
         // Default constructor
     }
@@ -28,9 +24,6 @@ public class Item {
         this.createdAt = createdAt;
     }
 
-    // ===============================
-    // Getters and Setters
-    // ===============================
 
     public int getItemId() {
         return itemId;
@@ -87,10 +80,6 @@ public class Item {
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
     }
-
-    // ===============================
-    // Utility Methods (Optional)
-    // ===============================
 
     @Override
     public String toString() {

@@ -23,5 +23,4 @@ public class DashboardController {
         view.dispose();
     }
 
-    // Add methods for tab actions if needed, e.g., handleEditList(String listName)
-}
+    }

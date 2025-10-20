@@ -13,9 +13,7 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * CreateNewListView (with threads + real Weather API from services.WeatherService)
- */
+
 public class CreateNewListView extends JFrame {
     private JComboBox<String> typeCombo;
     private JTextField nameField, destField, dateField;
@@ -26,7 +24,7 @@ public class CreateNewListView extends JFrame {
     private PackingListDAO dao = new PackingListDAO();
 
     public CreateNewListView() {
-        // Initialize DB schema in a background thread
+        
         new Thread(() -> dao.initSchema()).start();
 
         initializeUI();
@@ -118,9 +116,7 @@ public class CreateNewListView extends JFrame {
         refreshListInBackground();
     }
 
-    /**
-     * Background thread to create a packing list.
-     */
+    
     private void createListInBackground() {
         String name = nameField.getText().trim();
         String dest = destField.getText().trim();
@@ -164,9 +160,7 @@ public class CreateNewListView extends JFrame {
         worker.execute();
     }
 
-    /**
-     * Fetch real weather & template suggestions in background.
-     */
+    
     private void refreshListInBackground() {
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
             private String weatherText;

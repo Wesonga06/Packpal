@@ -11,7 +11,7 @@ public class WeatherService {
     private static final String API_KEY = "YOUR_OPENWEATHERMAP_API_KEY"; // replace with your real one
     private static final String API_URL = "https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=metric";
 
-    // ✅ Method 1: Fetch weather (simple text summary)
+    // Method 1: Fetch weather (simple text summary)
     public static String getWeather(String city) {
         try {
             String urlStr = String.format(API_URL, city, API_KEY);
@@ -34,7 +34,7 @@ public class WeatherService {
         }
     }
 
-    // ✅ Method 2: Return a WeatherData object (for DashboardView)
+    // Method 2: Return a WeatherData object (for DashboardView)
     public WeatherData getCurrentWeather(String city) {
         try {
             String urlStr = String.format(API_URL, city, API_KEY);
@@ -68,7 +68,7 @@ public class WeatherService {
         }
     }
 
-    // ✅ Inner class WeatherData
+    //  class WeatherData
     public static class WeatherData {
         private String city;
         private String country;

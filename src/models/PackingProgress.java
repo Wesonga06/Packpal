@@ -25,7 +25,7 @@ public class PackingProgress {
         this.packedItems = packedItems;
     }
 
-    // 🟩 Calculate completion percentage safely
+    // Calculate completion percentage safely
     public double getCompletionPercentage() {
         if (totalItems == 0) return 0.0;
         return ((double) packedItems / totalItems) * 100.0;

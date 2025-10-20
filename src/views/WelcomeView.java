@@ -9,7 +9,7 @@ import views.components.ShadowPanel;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.AlphaComposite;  // Explicit import for AlphaComposite
+import java.awt.AlphaComposite;  
 
 public class WelcomeView extends JFrame {
     private WelcomeController controller;

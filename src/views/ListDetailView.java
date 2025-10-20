@@ -183,7 +183,7 @@ public class ListDetailView extends JFrame {
         return panel;
     }
 
-    // -------------------- THREAD METHODS --------------------
+    
 
     private void loadItemsAndProgressInBackground() {
         SwingWorker<List<Item>, Void> worker = new SwingWorker<>() {

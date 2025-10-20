@@ -263,7 +263,7 @@ public class DashboardView extends JFrame {
         myListsContentPanel.repaint();
     }
 
-    // 🌤️ WEATHER THREAD IMPLEMENTATION
+    // WEATHER THREAD IMPLEMENTATION
     private void showWeatherForDestination(String destination) {
         if (destination == null || destination.isEmpty()) {
             JOptionPane.showMessageDialog(this,
@@ -307,7 +307,7 @@ public class DashboardView extends JFrame {
             }
         };
 
-        worker.execute(); // start background thread
+        worker.execute(); 
     }
 
     private JPanel createSettingsPanel() {

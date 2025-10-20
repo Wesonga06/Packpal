@@ -5,7 +5,7 @@
 package models;
 
 public class ProfileModel {
-    private static String name = "John Doe";  // Static for simple global access
+    private static String name = "John Doe";  
     private static String email = "user@example.com";
     private static String avatarPath = "";
 

@@ -91,9 +91,7 @@ public class PackingListView extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
     }
 
-    /**
-     * Loads items and progress bar in a background thread
-     */
+    
     private void loadItemsAndProgress() {
         progressLabel.setText("Loading items...");
         itemPanel.removeAll();
@@ -119,9 +117,7 @@ public class PackingListView extends JFrame {
         worker.execute();
     }
 
-    /**
-     * Updates the item panel after data is loaded
-     */
+    
     private void updateItemPanel(List<Item> items) {
         itemPanel.removeAll();
 
@@ -151,9 +147,7 @@ public class PackingListView extends JFrame {
         itemPanel.repaint();
     }
 
-    /**
-     * Creates a styled card for each item
-     */
+    
     private ShadowPanel createItemCard(Item item) {
         ShadowPanel card = new ShadowPanel(new BorderLayout());
         card.setPreferredSize(new Dimension(300, 50));
@@ -213,9 +207,7 @@ public class PackingListView extends JFrame {
         return card;
     }
 
-    /**
-     * Updates progress bar in a background thread
-     */
+    
     private void updateProgressBar() {
         SwingWorker<int[], Void> worker = new SwingWorker<>() {
             @Override

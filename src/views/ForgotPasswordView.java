@@ -6,10 +6,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-/**
- * ForgotPasswordView — allows users to reset their password via email.
- * Author: Cindy
- */
+
 public class ForgotPasswordView extends JFrame {
 
     private JTextField emailField;

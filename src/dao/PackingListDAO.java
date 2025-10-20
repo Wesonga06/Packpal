@@ -10,7 +10,7 @@ import java.util.List;
 
 public class PackingListDAO {
 
-    // ✅ Insert a new packing list and return generated ID
+    //  Insert a new packing list and return generated ID
     public int createPackingList(PackingList list) {
         String sql = "INSERT INTO packing_lists (user_id, list_name, description, destination, trip_type, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?)";
         int generatedId = -1;
@@ -43,7 +43,7 @@ public class PackingListDAO {
         return generatedId;
     }
 
-    // ✅ Fetch all packing lists for a specific user
+    // Fetch all packing lists for a specific user
     public List<PackingList> getPackingListsByUser(int userId) {
         List<PackingList> lists = new ArrayList<>();
         String sql = "SELECT * FROM packing_lists WHERE user_id = ? ORDER BY created_at DESC";
@@ -72,7 +72,7 @@ public class PackingListDAO {
         return lists;
     }
 
-    // ✅ Fetch one list by ID
+    // Fetch one list by ID
     public PackingList getPackingListById(int listId) {
         String sql = "SELECT * FROM packing_lists WHERE list_id = ?";
         
@@ -100,7 +100,7 @@ public class PackingListDAO {
         return null;
     }
 
-    // ✅ Delete a packing list
+    // Delete a packing list
     public boolean deletePackingList(int listId) {
         String sql = "DELETE FROM packing_lists WHERE list_id = ?";
         
@@ -116,7 +116,7 @@ public class PackingListDAO {
         return false;
     }
 
-    // ✅ Insert a new item into a list
+    // Insert a new item into a list
     public boolean addItemToList(Item item) {
         String sql = "INSERT INTO items (list_id, item_name, category, packed) VALUES (?, ?, ?, ?)";
         
@@ -135,7 +135,7 @@ public class PackingListDAO {
         return false;
     }
 
-    // ✅ Get all items in a list
+    // Get all items in a list
     public List<Item> getItemsByListId(int listId) {
         List<Item> items = new ArrayList<>();
         String sql = "SELECT * FROM items WHERE list_id = ? ORDER BY item_id DESC";
@@ -161,7 +161,7 @@ public class PackingListDAO {
         return items;
     }
 
-    // ✅ Update packed/unpacked status
+    // Update packed/unpacked status
     public void setItemPackedStatus(int itemId, boolean isPacked) {
         String sql = "UPDATE items SET packed = ? WHERE item_id = ?";
         
@@ -176,7 +176,7 @@ public class PackingListDAO {
         }
     }
 
-    // ✅ Delete an item
+    // Delete an item
     public boolean deleteItem(int itemId) {
         String sql = "DELETE FROM items WHERE item_id = ?";
         
@@ -192,7 +192,7 @@ public class PackingListDAO {
         return false;
     }
 
-    // ✅ Get total number of items in a list
+    // Get total number of items in a list
     public int getTotalItemsCount(int listId) {
         String sql = "SELECT COUNT(*) FROM items WHERE list_id = ?";
         
@@ -209,7 +209,7 @@ public class PackingListDAO {
     }
     
     public void initSchema() {
-    // Optional: create table if not exists
+    // create table if not exists
     try (Connection conn = DatabaseConfig.getConnection();
          Statement stmt = conn.createStatement()) {
         String sql = """
@@ -249,7 +249,7 @@ public class PackingListDAO {
 
 
 
-    // ✅ Get packed items count
+    // Get packed items count
     public int getPackedItemsCount(int listId) {
         String sql = "SELECT COUNT(*) FROM items WHERE list_id = ? AND packed = 1";
         

@@ -11,7 +11,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class UserDAO {
 
-    // 🔐 Utility: Hash password using SHA-256
+    // Hash password 
     private String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -27,7 +27,7 @@ public class UserDAO {
         }
     }
 
-    // 🧩 Create new user
+    // Create new user
     public int createUser(User user) {
         String sql = "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)";
 
@@ -51,7 +51,7 @@ public class UserDAO {
         return -1;
     }
 
-    // 📋 Get all users
+    // Get all users
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users ORDER BY created_at DESC";
@@ -76,7 +76,7 @@ public class UserDAO {
         return users;
     }
 
-    // 🔍 Get user by ID
+    // Get user by ID
     public User getUserById(int userId) {
         String sql = "SELECT * FROM users WHERE user_id = ?";
 
@@ -148,7 +148,7 @@ public class UserDAO {
         return false;
     }
 
-    // ❌ Delete user
+    // Delete user
     public boolean deleteUser(int userId) {
         String sql = "DELETE FROM users WHERE user_id = ?";
 
@@ -209,7 +209,7 @@ public class UserDAO {
         return false;
     }
 
-    // 🔑 Login user
+    // Login user
     public User loginUser(String email, String password) {
         String hashedPassword = hashPassword(password);
         String sql = "SELECT * FROM users WHERE email = ? AND password_hash = ? LIMIT 1";
