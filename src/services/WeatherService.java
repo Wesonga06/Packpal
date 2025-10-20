@@ -6,75 +6,105 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import org.json.JSONObject;
 
-/**
- * Handles weather data fetching from OpenWeatherMap API.
- */
 public class WeatherService {
 
-    private static final String API_KEY = "5e0067ca6bb07812d104885a27b479de"; // Your actual API key
-    private static final String BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
+    private static final String API_KEY = "YOUR_OPENWEATHERMAP_API_KEY"; // replace with your real one
+    private static final String API_URL = "https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=metric";
 
-    /**
-     * Fetches the current weather data for a given city.
-     *
-     * @param city The city name
-     * @return WeatherData object containing the weather details
-     */
-    public WeatherData getCurrentWeather(String city) {
+    // ✅ Method 1: Fetch weather (simple text summary)
+    public static String getWeather(String city) {
         try {
-            String urlString = BASE_URL + "?q=" + city + "&appid=" + API_KEY + "&units=metric";
-            URL url = new URL(urlString);
+            String urlStr = String.format(API_URL, city, API_KEY);
+            URL url = new URL(urlStr);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             StringBuilder response = new StringBuilder();
             String line;
-
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
+            while ((line = reader.readLine()) != null) response.append(line);
             reader.close();
 
             JSONObject json = new JSONObject(response.toString());
-            WeatherData data = new WeatherData();
-
-            data.setCity(json.getString("name"));
-            data.setCountry(json.getJSONObject("sys").getString("country"));
-            data.setTemperature(json.getJSONObject("main").getDouble("temp"));
-            data.setFeelsLike(json.getJSONObject("main").getDouble("feels_like"));
-            data.setHumidity(json.getJSONObject("main").getInt("humidity"));
-            data.setWindSpeed(json.getJSONObject("wind").getDouble("speed"));
-            data.setDescription(json.getJSONArray("weather").getJSONObject(0).getString("description"));
-
-            return data;
-
+            double temp = json.getJSONObject("main").getDouble("temp");
+            String condition = json.getJSONArray("weather").getJSONObject(0).getString("description");
+            return String.format("🌤 %s: %.1f°C (%s)", city, temp, condition);
         } catch (Exception e) {
-            System.out.println("Error fetching weather: " + e.getMessage());
+            return "⚠️ Unable to fetch weather for " + city;
+        }
+    }
+
+    // ✅ Method 2: Return a WeatherData object (for DashboardView)
+    public WeatherData getCurrentWeather(String city) {
+        try {
+            String urlStr = String.format(API_URL, city, API_KEY);
+            URL url = new URL(urlStr);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) response.append(line);
+            reader.close();
+
+            JSONObject json = new JSONObject(response.toString());
+            JSONObject main = json.getJSONObject("main");
+            JSONObject wind = json.getJSONObject("wind");
+            JSONObject weather = json.getJSONArray("weather").getJSONObject(0);
+
+            return new WeatherData(
+                    json.getString("name"),
+                    json.getJSONObject("sys").getString("country"),
+                    main.getDouble("temp"),
+                    main.getDouble("feels_like"),
+                    main.getInt("humidity"),
+                    wind.getDouble("speed"),
+                    weather.getString("description")
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
 
-    /**
-     * Returns formatted weather summary text for a given city.
-     * This method wraps getCurrentWeather() and does not affect existing logic.
-     */
-    public String getWeather(String city) {
-        WeatherData data = getCurrentWeather(city);
-        if (data == null) {
-            return "Unable to fetch weather data for " + city + ".";
+    // ✅ Inner class WeatherData
+    public static class WeatherData {
+        private String city;
+        private String country;
+        private double temperature;
+        private double feelsLike;
+        private int humidity;
+        private double windSpeed;
+        private String description;
+
+        public WeatherData(String city, String country, double temperature, double feelsLike,
+                           int humidity, double windSpeed, String description) {
+            this.city = city;
+            this.country = country;
+            this.temperature = temperature;
+            this.feelsLike = feelsLike;
+            this.humidity = humidity;
+            this.windSpeed = windSpeed;
+            this.description = description;
         }
 
-        return String.format(
-            "%s, %s: %.1f°C (Feels like %.1f°C), %d%% humidity, %.1f m/s wind, %s %s",
-            data.getCity(),
-            data.getCountry(),
-            data.getTemperature(),
-            data.getFeelsLike(),
-            data.getHumidity(),
-            data.getWindSpeed(),
-            data.getDescription(),
-            data.getWeatherEmoji()
-        );
+        public String getCity() { return city; }
+        public String getCountry() { return country; }
+        public double getTemperature() { return temperature; }
+        public double getFeelsLike() { return feelsLike; }
+        public int getHumidity() { return humidity; }
+        public double getWindSpeed() { return windSpeed; }
+        public String getDescription() { return description; }
+
+        public String getWeatherEmoji() {
+            String d = description.toLowerCase();
+            if (d.contains("rain")) return "🌧";
+            if (d.contains("cloud")) return "☁️";
+            if (d.contains("clear")) return "☀️";
+            if (d.contains("snow")) return "❄️";
+            return "🌍";
+        }
     }
 }
+

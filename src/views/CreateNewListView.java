@@ -1,7 +1,7 @@
 package views;
 
 import dao.PackingListDAO;
-import services.WeatherService; // ✅ Correct import
+import services.WeatherService; 
 import utils.UIConstants;
 import views.components.RoundedButton;
 import views.components.RoundedTextField;
@@ -12,7 +12,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
-import services.WeatherData;
 
 /**
  * CreateNewListView (with threads + real Weather API from services.WeatherService)
@@ -180,7 +179,7 @@ public class CreateNewListView extends JFrame {
 
                 // Fetch weather (real API if destination entered)
                 if (!city.isEmpty()) {
-                    weatherText = WeatherData.getWeather(city);
+                    weatherText = WeatherService.getWeather(city);
                 } else {
                     weatherText = "Enter a destination to load weather.";
                 }

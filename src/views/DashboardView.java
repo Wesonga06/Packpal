@@ -5,7 +5,6 @@ import dao.PackingListDAO;
 import models.PackingList;
 import models.User;
 import services.WeatherService;
-import services.WeatherService.WeatherData;
 import utils.UIConstants;
 import views.components.RoundedButton;
 import views.components.ShadowPanel;
@@ -20,6 +19,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.List;
+import services.WeatherService.WeatherData;
+
 
 public class DashboardView extends JFrame {
     private DashboardController controller;
