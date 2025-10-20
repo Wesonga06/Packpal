@@ -8,8 +8,6 @@ import views.components.ShadowPanel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 public class PackingListView extends JFrame {
@@ -23,7 +21,7 @@ public class PackingListView extends JFrame {
     public PackingListView(int listId) {
         this.listId = listId;
         try {
-            dao.initSchema();  // Ensure DB ready
+            dao.initSchema();  // Ensure DB is ready
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "DB error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -47,7 +45,7 @@ public class PackingListView extends JFrame {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // Progress
-        progressLabel = new JLabel("0 of 0 items packed", SwingConstants.CENTER);
+        progressLabel = new JLabel("Loading items...", SwingConstants.CENTER);
         progressLabel.setFont(UIConstants.TITLE_FONT);
 
         progressBar = new JProgressBar(0, 100);
@@ -58,19 +56,21 @@ public class PackingListView extends JFrame {
         progressPanel.add(progressBar, BorderLayout.CENTER);
         mainPanel.add(progressPanel, BorderLayout.NORTH);
 
-        // Search
+        // Search Field
         searchField = new JTextField("🔍 Search items");
         searchField.setPreferredSize(new Dimension(300, 40));
         mainPanel.add(searchField, BorderLayout.NORTH);
 
-        // Checklist
+        // Checklist Panel
         itemPanel = new JPanel(new GridLayout(0, 1, 0, 5));
-        loadItemsAndProgress();
         JScrollPane scroll = new JScrollPane(itemPanel);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         mainPanel.add(scroll, BorderLayout.CENTER);
 
-        // Bottom Actions
+        // Load Items in Background Thread
+        loadItemsAndProgress();
+
+        // Bottom Buttons
         JPanel bottomPanel = new JPanel(new BorderLayout());
 
         RoundedButton saveBtn = new RoundedButton("Save", UIConstants.PRIMARY_BLUE);
@@ -91,12 +91,42 @@ public class PackingListView extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Loads items and progress bar in a background thread
+     */
     private void loadItemsAndProgress() {
+        progressLabel.setText("Loading items...");
         itemPanel.removeAll();
-        List<Item> items = dao.getItemsByListId(listId);
+
+        SwingWorker<List<Item>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Item> doInBackground() {
+                return dao.getItemsByListId(listId);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<Item> items = get();
+                    updateItemPanel(items);
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(PackingListView.this,
+                            "Error loading items: " + e.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    /**
+     * Updates the item panel after data is loaded
+     */
+    private void updateItemPanel(List<Item> items) {
+        itemPanel.removeAll();
+
         int total = items.size();
         int packed = 0;
-
         for (Item item : items) {
             if (item.isPacked()) packed++;
         }
@@ -121,6 +151,9 @@ public class PackingListView extends JFrame {
         itemPanel.repaint();
     }
 
+    /**
+     * Creates a styled card for each item
+     */
     private ShadowPanel createItemCard(Item item) {
         ShadowPanel card = new ShadowPanel(new BorderLayout());
         card.setPreferredSize(new Dimension(300, 50));
@@ -130,8 +163,20 @@ public class PackingListView extends JFrame {
         checkBox.setSelected(item.isPacked());
         checkBox.addActionListener(e -> {
             item.setPacked(checkBox.isSelected());
-            dao.setItemPackedStatus(item.getItemId(), item.isPacked());
-            updateProgressBar();
+            // Run DB update in a thread
+            SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() {
+                    dao.setItemPackedStatus(item.getItemId(), item.isPacked());
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    updateProgressBar();
+                }
+            };
+            worker.execute();
         });
         card.add(checkBox, BorderLayout.WEST);
 
@@ -168,18 +213,37 @@ public class PackingListView extends JFrame {
         return card;
     }
 
+    /**
+     * Updates progress bar in a background thread
+     */
     private void updateProgressBar() {
-        List<Item> items = dao.getItemsByListId(listId);
-        int total = items.size();
-        int packed = 0;
+        SwingWorker<int[], Void> worker = new SwingWorker<>() {
+            @Override
+            protected int[] doInBackground() {
+                List<Item> items = dao.getItemsByListId(listId);
+                int total = items.size();
+                int packed = 0;
+                for (Item item : items) {
+                    if (item.isPacked()) packed++;
+                }
+                return new int[]{packed, total};
+            }
 
-        for (Item item : items) {
-            if (item.isPacked()) packed++;
-        }
-
-        progressBar.setMaximum(total == 0 ? 1 : total);
-        progressBar.setValue(packed);
-        progressLabel.setText(packed + " of " + total + " items packed");
+            @Override
+            protected void done() {
+                try {
+                    int[] data = get();
+                    int packed = data[0];
+                    int total = data[1];
+                    progressBar.setMaximum(total == 0 ? 1 : total);
+                    progressBar.setValue(packed);
+                    progressLabel.setText(packed + " of " + total + " items packed");
+                } catch (Exception e) {
+                    System.err.println("Error updating progress: " + e.getMessage());
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void saveChanges() {
@@ -196,8 +260,19 @@ public class PackingListView extends JFrame {
             newItem.setCategory("General");
             newItem.setPacked(false);
 
-            dao.addItemToList(newItem);
-            loadItemsAndProgress();
+            SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() {
+                    dao.addItemToList(newItem);
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    loadItemsAndProgress();
+                }
+            };
+            worker.execute();
         }
     }
 
@@ -205,16 +280,27 @@ public class PackingListView extends JFrame {
         String newName = JOptionPane.showInputDialog(this, "Edit item name:", item.getItemName());
         if (newName != null && !newName.trim().isEmpty()) {
             item.setItemName(newName);
-            // You can add a DAO update method if you want it persistent
             loadItemsAndProgress();
         }
     }
 
     private void deleteItem(Item item) {
-        int confirm = JOptionPane.showConfirmDialog(this, "Delete '" + item.getItemName() + "'?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Delete '" + item.getItemName() + "'?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            dao.deleteItem(item.getItemId());
-            loadItemsAndProgress();
+            SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() {
+                    dao.deleteItem(item.getItemId());
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    loadItemsAndProgress();
+                }
+            };
+            worker.execute();
         }
     }
 
