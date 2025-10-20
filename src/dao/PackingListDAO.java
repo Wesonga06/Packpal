@@ -82,21 +82,38 @@ public class PackingListDAO {
     }
 
     // ✅ Insert a new packing list
-    public boolean createPackingList(PackingList list) {
-        String sql = "INSERT INTO packing_lists (user_id, list_name, destination, description) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, list.getUserId());
-            stmt.setString(2, list.getListName());
-            stmt.setString(3, list.getDestination());
-            stmt.setString(4, list.getDescription());
-            stmt.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
+ 'public int createPackingList(PackingList list) {
+    String sql = "INSERT INTO packing_lists (user_id, list_name, description, destination, trip_type, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    int generatedId = -1;
+
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+        stmt.setInt(1, list.getUserId());
+        stmt.setString(2, list.getListName());
+        stmt.setString(3, list.getDescription());
+        stmt.setString(4, list.getDestination());
+        stmt.setString(5, list.getTripType());
+        stmt.setDate(6, list.getStartDate());
+        stmt.setDate(7, list.getEndDate());
+
+        int affectedRows = stmt.executeUpdate();
+
+        if (affectedRows > 0) {
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    generatedId = rs.getInt(1); // The auto-generated ID
+                }
+            }
         }
-        return false;
+
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
 
+    return generatedId; // Will return the new list ID, or -1 if failed
+}
+'
     // ✅ Fetch all packing lists for a specific user
     public List<PackingList> getPackingListsByUser(int userId) {
         List<PackingList> lists = new ArrayList<>();
@@ -328,3 +345,41 @@ public class PackingListDAO {
         }
     }
 }
+
+    public void setItemPackedStatus(int itemId, boolean selected) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public void setItemPackedStatus(int itemId, boolean selected) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public int getTotalItemsCount(int listId) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public int getPackedItemsCount(int listId) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public static class ListItem {
+
+        public ListItem() {
+        }
+    }
+
+    public int getPackedItemsCount(int listId) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public int getTotalItemsCount(int listId) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public List<Item> getItemsByListId(int listId) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public List<Item> getItemsByListId(int listId) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }

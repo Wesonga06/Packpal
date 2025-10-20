@@ -176,7 +176,7 @@ public class CreateListDialog extends JDialog {
         return button;
     }
     
-    private void generateList() {
+   private void generateList() {
     String listName = listNameField.getText().trim();
     String description = descriptionField.getText().trim();
     String destination = destinationField.getText().trim();
@@ -203,16 +203,15 @@ public class CreateListDialog extends JDialog {
     list.setStartDate(new Date(startDate.getTime()));
     list.setEndDate(new Date(endDate.getTime()));
 
-    // Call DAO to save it
-    boolean success = dao.createPackingList(list);
-    if (success) {
-        JOptionPane.showMessageDialog(this, "Packing List created successfully!");
+    // ✅ Call DAO to save and get generated list ID
+    int listId = dao.createPackingList(list);
+
+    if (listId > 0) {
+        JOptionPane.showMessageDialog(this, "Packing List created successfully! (ID: " + listId + ")");
         dispose(); // Close dialog after success
     } else {
         JOptionPane.showMessageDialog(this, "Failed to create packing list.", "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
 
-    // Removed erroneous static inner classes; add dateField if needed
-    private JTextField dateField = new JTextField();  // Added if missing; adjust as needed
 }
