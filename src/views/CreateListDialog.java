@@ -204,8 +204,8 @@ public class CreateListDialog extends JDialog {
     list.setEndDate(new Date(endDate.getTime()));
 
     // Call DAO to save it
-    int listId = dao.createPackingList(list);
-    if (listId > 0) {
+    boolean success = dao.createPackingList(list);
+    if (success) {
         JOptionPane.showMessageDialog(this, "Packing List created successfully!");
         dispose(); // Close dialog after success
     } else {
