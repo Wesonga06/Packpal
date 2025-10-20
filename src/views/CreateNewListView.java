@@ -1,6 +1,7 @@
 package views;
 
 import dao.PackingListDAO;
+import services.WeatherService; // ✅ Correct import
 import utils.UIConstants;
 import views.components.RoundedButton;
 import views.components.RoundedTextField;
@@ -11,10 +12,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
+import services.WeatherData;
 
 /**
- * CreateNewListView (with threads)
- * Handles packing list creation, weather & template suggestion — using threads for smooth UI.
+ * CreateNewListView (with threads + real Weather API from services.WeatherService)
  */
 public class CreateNewListView extends JFrame {
     private JComboBox<String> typeCombo;
@@ -26,7 +27,7 @@ public class CreateNewListView extends JFrame {
     private PackingListDAO dao = new PackingListDAO();
 
     public CreateNewListView() {
-        // Run DB schema initialization in a background thread
+        // Initialize DB schema in a background thread
         new Thread(() -> dao.initSchema()).start();
 
         initializeUI();
@@ -52,7 +53,6 @@ public class CreateNewListView extends JFrame {
         gbc.insets = new Insets(10, 0, 20, 0);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Trip Name
         JLabel nameLabel = new JLabel("Trip name (e.g., Weekend Getaway)");
         nameLabel.setFont(UIConstants.BODY_FONT);
         gbc.gridy = 0;
@@ -63,8 +63,7 @@ public class CreateNewListView extends JFrame {
         gbc.gridy++;
         mainPanel.add(nameField, gbc);
 
-        // Destination
-        JLabel destLabel = new JLabel("Destination");
+        JLabel destLabel = new JLabel("Destination (city)");
         gbc.gridy++;
         mainPanel.add(destLabel, gbc);
 
@@ -73,7 +72,6 @@ public class CreateNewListView extends JFrame {
         gbc.gridy++;
         mainPanel.add(destField, gbc);
 
-        // Dates
         JLabel dateLabel = new JLabel("Dates");
         gbc.gridy++;
         mainPanel.add(dateLabel, gbc);
@@ -83,7 +81,6 @@ public class CreateNewListView extends JFrame {
         gbc.gridy++;
         mainPanel.add(dateField, gbc);
 
-        // Trip Type
         JLabel typeLabel = new JLabel("Trip Type");
         gbc.gridy++;
         mainPanel.add(typeLabel, gbc);
@@ -95,7 +92,6 @@ public class CreateNewListView extends JFrame {
         gbc.gridy++;
         mainPanel.add(typeCombo, gbc);
 
-        // Weather Panel
         gbc.gridy++;
         weatherPanel = new ShadowPanel(new BorderLayout());
         weatherPanel.setPreferredSize(new Dimension(300, 80));
@@ -104,14 +100,12 @@ public class CreateNewListView extends JFrame {
         weatherPanel.add(weatherLabel, BorderLayout.CENTER);
         mainPanel.add(weatherPanel, gbc);
 
-        // Generate Button
         RoundedButton generateBtn = new RoundedButton("Generate List", UIConstants.PRIMARY_BLUE);
         generateBtn.setPreferredSize(new Dimension(300, 50));
         generateBtn.addActionListener(e -> createListInBackground());
         gbc.gridy++;
         mainPanel.add(generateBtn, gbc);
 
-        // Suggested Templates
         gbc.gridy++;
         templatesPanel = new ShadowPanel(new BorderLayout());
         templatesPanel.setPreferredSize(new Dimension(300, 100));
@@ -122,12 +116,11 @@ public class CreateNewListView extends JFrame {
 
         add(mainPanel, BorderLayout.CENTER);
 
-        // Initial thread to load weather & templates
         refreshListInBackground();
     }
 
     /**
-     * Creates a new packing list in a background thread.
+     * Background thread to create a packing list.
      */
     private void createListInBackground() {
         String name = nameField.getText().trim();
@@ -140,7 +133,6 @@ public class CreateNewListView extends JFrame {
             return;
         }
 
-        // Disable UI while processing
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
         SwingWorker<Integer, Void> worker = new SwingWorker<>() {
@@ -174,7 +166,7 @@ public class CreateNewListView extends JFrame {
     }
 
     /**
-     * Refresh weather and templates using a background thread.
+     * Fetch real weather & template suggestions in background.
      */
     private void refreshListInBackground() {
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
@@ -184,23 +176,16 @@ public class CreateNewListView extends JFrame {
             @Override
             protected Void doInBackground() {
                 String selectedType = (String) typeCombo.getSelectedItem();
-                if (selectedType == null) return null;
+                String city = destField.getText().trim();
 
-                // Simulate slow fetch (e.g., API)
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException ignored) {}
+                // Fetch weather (real API if destination entered)
+                if (!city.isEmpty()) {
+                    weatherText = WeatherData.getWeather(city);
+                } else {
+                    weatherText = "Enter a destination to load weather.";
+                }
 
-                // Weather text simulation
-                weatherText = switch (selectedType) {
-                    case "Beach" -> "Sunny, 85°F - Suggested: Swimsuit, Towel";
-                    case "Business" -> "Cloudy, 65°F - Suggested: Laptop, Notebook";
-                    case "Camping" -> "Clear, 50°F - Suggested: Tent, Sleeping Bag";
-                    case "Weekend" -> "Partly Cloudy, 70°F - Suggested: Casual Clothes, Snacks";
-                    default -> "Weather info unavailable";
-                };
-
-                // Template suggestions
+                // Template suggestions based on trip type
                 List<String> templates = switch (selectedType) {
                     case "Beach" -> Arrays.asList("Beach Essentials", "Summer Vacation Kit");
                     case "Business" -> Arrays.asList("Work Trip Basics", "Professional Attire");
@@ -212,7 +197,6 @@ public class CreateNewListView extends JFrame {
                 templatesText = new StringBuilder("<html>Suggested Templates:<br>");
                 for (String t : templates) templatesText.append("• ").append(t).append("<br>");
                 templatesText.append("</html>");
-
                 return null;
             }
 
