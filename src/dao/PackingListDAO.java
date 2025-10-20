@@ -21,8 +21,8 @@ public class PackingListDAO {
             e.printStackTrace();
         }
     }
-    
-     public void initSchema() {
+
+    public void initSchema() {
         try (Statement stmt = conn.createStatement()) {
             stmt.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS packing_lists (
@@ -245,20 +245,64 @@ public class PackingListDAO {
         return 0;
     }
 
+    // ✅ Implemented version instead of UnsupportedOperationException
     public int createPackingList(String name, String dest, String dates, String type) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        String sql = "INSERT INTO packing_lists (name, destination, dates, type) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, name);
+            stmt.setString(2, dest);
+            stmt.setString(3, dates);
+            stmt.setString(4, type);
+            int affected = stmt.executeUpdate();
+            if (affected > 0) {
+                ResultSet rs = stmt.getGeneratedKeys();
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     public List<ListItem> getListItems(int listId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        List<ListItem> items = new ArrayList<>();
+        String sql = "SELECT * FROM list_items WHERE list_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, listId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                ListItem item = new ListItem(
+                        rs.getInt("id"),
+                        rs.getInt("list_id"),
+                        rs.getString("name"),
+                        rs.getInt("quantity"),
+                        rs.getString("category")
+                );
+                items.add(item);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return items;
     }
-    
-     public static class ListItem {
+
+    // ✅ Close DB connection (non-static)
+    public void close() {
+        try {
+            if (conn != null && !conn.isClosed()) conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ✅ Nested ListItem class
+    public static class ListItem {
         private int id;
         private int listId;
         private String name;
         private int quantity;
         private String category;
+        private boolean packed;
 
         public ListItem(int id, int listId, String name, int quantity, String category) {
             this.id = id;
@@ -273,33 +317,14 @@ public class PackingListDAO {
         public String getName() { return name; }
         public int getQuantity() { return quantity; }
         public String getCategory() { return category; }
+        public boolean isPacked() { return packed; }
+
+        public void setPacked(boolean packed) { this.packed = packed; }
+        public void setName(String newName) { this.name = newName; }
 
         @Override
         public String toString() {
             return name + " (" + quantity + ") - " + category;
         }
-
-    // ✅ Close DB connection when needed
-    public void close() {
-        try {
-            if (conn != null && !conn.isClosed()) conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
-
-        public boolean isPacked() {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        public void setPacked(boolean selected) {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        public void setName(String newName) {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
 }
-}
-
