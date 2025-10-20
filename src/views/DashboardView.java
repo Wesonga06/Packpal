@@ -4,6 +4,8 @@ import controllers.DashboardController;
 import dao.PackingListDAO;
 import models.PackingList;
 import models.User;
+import services.WeatherService;
+import services.WeatherService.WeatherData;
 import utils.UIConstants;
 import views.components.RoundedButton;
 import views.components.ShadowPanel;
@@ -19,9 +21,6 @@ import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Updated DashboardView with SwingWorker for thread-safe background data loading.
- */
 public class DashboardView extends JFrame {
     private DashboardController controller;
     private JTabbedPane tabbedPane;
@@ -31,7 +30,6 @@ public class DashboardView extends JFrame {
     private User currentUser;
     private PackingListDAO dao;
     private JPanel myListsContentPanel;
-    private JLabel loadingLabel; // new - shows loading message
 
     public DashboardView() {
         this.currentUser = new User();
@@ -68,20 +66,26 @@ public class DashboardView extends JFrame {
         setMinimumSize(new Dimension(450, 650));
         setResizable(true);
 
+        // Top Bar
         topBar = createTopBar();
         add(topBar, BorderLayout.NORTH);
 
+        // Tabbed Content
         tabbedPane = new JTabbedPane();
         tabbedPane.setTabPlacement(JTabbedPane.TOP);
         tabbedPane.setPreferredSize(new Dimension(500, 600));
+        tabbedPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         tabbedPane.addChangeListener(new TabChangeListener());
 
+        // Add My Lists Tab
         JPanel myListsPanel = createMyListsPanel();
         tabbedPane.addTab(null, myListsPanel);
 
+        // Add Settings Tab
         JPanel settingsPanel = createSettingsPanel();
         tabbedPane.addTab(null, settingsPanel);
 
+        // Set Initial Tab
         tabbedPane.setSelectedIndex(0);
         updateTabLabels();
 
@@ -107,12 +111,14 @@ public class DashboardView extends JFrame {
 
         RoundedButton myListsTab = new RoundedButton("📋 My Lists", UIConstants.PRIMARY_BLUE);
         myListsTab.setForeground(Color.WHITE);
+        myListsTab.setPreferredSize(new Dimension(200, 40));
         myListsTab.setActionCommand("0");
         myListsTab.addActionListener(createTabActionListener(0));
         tabsPanel.add(myListsTab);
 
         RoundedButton settingsTab = new RoundedButton("⚙️ Settings", Color.WHITE);
         settingsTab.setForeground(UIConstants.PRIMARY_BLUE);
+        settingsTab.setPreferredSize(new Dimension(200, 40));
         settingsTab.setActionCommand("1");
         settingsTab.addActionListener(createTabActionListener(1));
         tabsPanel.add(settingsTab);
@@ -136,9 +142,16 @@ public class DashboardView extends JFrame {
             if (i == selected) {
                 tabBtn.setBackground(UIConstants.PRIMARY_BLUE);
                 tabBtn.setForeground(Color.WHITE);
+                tabBtn.setFont(UIConstants.TITLE_FONT.deriveFont(Font.BOLD));
+                tabBtn.setBorder(BorderFactory.createCompoundBorder(
+                        new RoundedButton.UnderlineBorder(Color.WHITE, 3),
+                        tabBtn.getBorder()
+                ));
             } else {
                 tabBtn.setBackground(Color.WHITE);
                 tabBtn.setForeground(UIConstants.PRIMARY_BLUE);
+                tabBtn.setFont(UIConstants.BODY_FONT);
+                tabBtn.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
             }
         }
         topBar.repaint();
@@ -153,20 +166,12 @@ public class DashboardView extends JFrame {
         title.setFont(new Font("Arial", Font.BOLD, 20));
         title.setForeground(UIConstants.PRIMARY_BLUE);
         title.setHorizontalAlignment(SwingConstants.CENTER);
+        title.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
         panel.add(title, BorderLayout.NORTH);
 
         myListsContentPanel = new JPanel(new BorderLayout());
         myListsContentPanel.setBackground(Color.WHITE);
-
-        // Loading label (for thread feedback)
-        loadingLabel = new JLabel("Loading your lists...", SwingConstants.CENTER);
-        loadingLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-        loadingLabel.setForeground(Color.GRAY);
-        myListsContentPanel.add(loadingLabel, BorderLayout.CENTER);
-
-        // Load lists in a background thread
-        loadPackingListsAsync();
-
+        loadPackingLists();
         panel.add(myListsContentPanel, BorderLayout.CENTER);
 
         JButton addListBtn = new JButton("+ Create New List");
@@ -174,107 +179,147 @@ public class DashboardView extends JFrame {
         addListBtn.setForeground(Color.WHITE);
         addListBtn.setFocusPainted(false);
         addListBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        addListBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        addListBtn.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
+
         addListBtn.addActionListener(e -> {
-            CreateListDialog dialog = new CreateListDialog(this, currentUser, this::loadPackingListsAsync);
+            CreateListDialog dialog = new CreateListDialog(this, currentUser, this::loadPackingLists);
             dialog.setVisible(true);
         });
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setBackground(Color.WHITE);
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         buttonPanel.add(addListBtn);
+
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
         return panel;
     }
 
-    /**
-     * Loads packing lists in a background thread (thread-safe).
-     */
-    private void loadPackingListsAsync() {
+    private void loadPackingLists() {
         myListsContentPanel.removeAll();
-        myListsContentPanel.add(loadingLabel, BorderLayout.CENTER);
+        List<PackingList> lists = dao.getPackingListsByUser(currentUser.getUserId());
+
+        if (lists.isEmpty()) {
+            JLabel emptyLabel = new JLabel("No packing lists yet. Create one to get started!");
+            emptyLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+            emptyLabel.setForeground(Color.GRAY);
+            emptyLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            emptyLabel.setBorder(BorderFactory.createEmptyBorder(50, 20, 50, 20));
+            myListsContentPanel.add(emptyLabel, BorderLayout.CENTER);
+        } else {
+            String[] columns = {"ID", "List Name", "Destination", "Trip Type", "Start Date"};
+            DefaultTableModel tableModel = new DefaultTableModel(columns, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+
+            for (PackingList list : lists) {
+                Object[] row = {
+                        list.getListId(),
+                        list.getListName(),
+                        list.getDestination(),
+                        list.getTripType(),
+                        list.getStartDate() != null ? list.getStartDate().toString() : "N/A"
+                };
+                tableModel.addRow(row);
+            }
+
+            JTable table = new JTable(tableModel);
+            table.setRowHeight(30);
+            table.setFont(new Font("Arial", Font.PLAIN, 13));
+            table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 13));
+            table.getTableHeader().setBackground(new Color(240, 240, 240));
+            table.setSelectionBackground(new Color(230, 240, 255));
+            table.setGridColor(new Color(220, 220, 220));
+
+            table.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 2) {
+                        int row = table.getSelectedRow();
+                        if (row != -1) {
+                            int listId = (int) table.getValueAt(row, 0);
+                            PackingList selectedList = dao.getPackingListById(listId);
+                            if (selectedList != null) {
+                                showWeatherForDestination(selectedList.getDestination());
+                                new ListDetailView(currentUser, selectedList).setVisible(true);
+                            }
+                        }
+                    }
+                }
+            });
+
+            JScrollPane scrollPane = new JScrollPane(table);
+            scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+            myListsContentPanel.add(scrollPane, BorderLayout.CENTER);
+        }
+
         myListsContentPanel.revalidate();
         myListsContentPanel.repaint();
+    }
 
-        SwingWorker<List<PackingList>, Void> worker = new SwingWorker<>() {
+    // 🌤️ WEATHER THREAD IMPLEMENTATION
+    private void showWeatherForDestination(String destination) {
+        if (destination == null || destination.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "No destination found for this list.",
+                    "Weather Info", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        SwingWorker<WeatherData, Void> worker = new SwingWorker<>() {
             @Override
-            protected List<PackingList> doInBackground() throws Exception {
-                // Background thread — fetch data from DB
-                return dao.getPackingListsByUser(currentUser.getUserId());
+            protected WeatherData doInBackground() throws Exception {
+                WeatherService service = new WeatherService();
+                return service.getCurrentWeather(destination);
             }
 
             @Override
             protected void done() {
                 try {
-                    List<PackingList> lists = get();
-                    myListsContentPanel.removeAll();
+                    WeatherData data = get();
+                    if (data != null) {
+                        String info = String.format(
+                                "🌍 City: %s (%s)\n🌡 Temperature: %.1f°C (Feels like %.1f°C)\n" +
+                                "💧 Humidity: %d%%\n💨 Wind: %.1f m/s\n☁️ Condition: %s %s",
+                                data.getCity(), data.getCountry(), data.getTemperature(), data.getFeelsLike(),
+                                data.getHumidity(), data.getWindSpeed(), data.getDescription(),
+                                data.getWeatherEmoji()
+                        );
 
-                    if (lists.isEmpty()) {
-                        JLabel emptyLabel = new JLabel("No packing lists yet. Create one to get started!");
-                        emptyLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-                        emptyLabel.setForeground(Color.GRAY);
-                        emptyLabel.setHorizontalAlignment(SwingConstants.CENTER);
-                        myListsContentPanel.add(emptyLabel, BorderLayout.CENTER);
+                        JOptionPane.showMessageDialog(DashboardView.this, info,
+                                "Current Weather", JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                        String[] columns = {"ID", "List Name", "Destination", "Trip Type", "Start Date"};
-                        DefaultTableModel model = new DefaultTableModel(columns, 0) {
-                            @Override
-                            public boolean isCellEditable(int r, int c) { return false; }
-                        };
-
-                        for (PackingList list : lists) {
-                            model.addRow(new Object[]{
-                                list.getListId(),
-                                list.getListName(),
-                                list.getDestination(),
-                                list.getTripType(),
-                                list.getStartDate() != null ? list.getStartDate().toString() : "N/A"
-                            });
-                        }
-
-                        JTable table = new JTable(model);
-                        table.setRowHeight(30);
-                        table.setFont(new Font("Arial", Font.PLAIN, 13));
-                        table.addMouseListener(new MouseAdapter() {
-                            @Override
-                            public void mouseClicked(MouseEvent e) {
-                                if (e.getClickCount() == 2) {
-                                    int row = table.getSelectedRow();
-                                    if (row != -1) {
-                                        int listId = (int) table.getValueAt(row, 0);
-                                        PackingList selected = dao.getPackingListById(listId);
-                                        if (selected != null) {
-                                            new ListDetailView(currentUser, selected).setVisible(true);
-                                        }
-                                    }
-                                }
-                            }
-                        });
-
-                        JScrollPane scrollPane = new JScrollPane(table);
-                        myListsContentPanel.add(scrollPane, BorderLayout.CENTER);
+                        JOptionPane.showMessageDialog(DashboardView.this,
+                                "Could not fetch weather data for " + destination,
+                                "Weather Info", JOptionPane.WARNING_MESSAGE);
                     }
-
-                    myListsContentPanel.revalidate();
-                    myListsContentPanel.repaint();
                 } catch (Exception ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(DashboardView.this, "Error loading lists: " + ex.getMessage(),
-                            "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(DashboardView.this,
+                            "Error fetching weather: " + ex.getMessage(),
+                            "Weather Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         };
-        worker.execute();
+
+        worker.execute(); // start background thread
     }
 
     private JPanel createSettingsPanel() {
-        JPanel panel = new JPanel();
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
-        JLabel label = new JLabel("⚙️ Settings Coming Soon...");
-        label.setFont(new Font("Arial", Font.BOLD, 16));
-        label.setForeground(UIConstants.PRIMARY_BLUE);
-        label.setHorizontalAlignment(SwingConstants.CENTER);
-        panel.add(label);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JLabel info = new JLabel("Settings will appear here soon...");
+        info.setHorizontalAlignment(SwingConstants.CENTER);
+        info.setFont(new Font("Arial", Font.PLAIN, 14));
+        info.setForeground(Color.GRAY);
+        panel.add(info, BorderLayout.CENTER);
+
         return panel;
     }
 
@@ -285,9 +330,7 @@ public class DashboardView extends JFrame {
         }
     }
 
-    public JTabbedPane getTabbedPane() {
-        return tabbedPane;
-    }
+    public JTabbedPane getTabbedPane() { return tabbedPane; }
 
     public void navigateToWelcome() {
         new WelcomeView();
