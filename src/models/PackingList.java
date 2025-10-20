@@ -12,7 +12,10 @@ public class PackingList {
     private Date endDate;
     private String tripType;
     private String subtitle;
+    private int totalItems;
+    private int packedItems;
 
+    // Getters and Setters
     public int getListId() { return listId; }
     public void setListId(int listId) { this.listId = listId; }
 
@@ -40,11 +43,19 @@ public class PackingList {
     public String getSubtitle() { return subtitle; }
     public void setSubtitle(String subtitle) { this.subtitle = subtitle; }
 
-    public void setTotalItems(int totalItemsCount) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
+    public int getTotalItems() { return totalItems; }
+    public void setTotalItems(int totalItems) { this.totalItems = totalItems; }
 
-    public void setPackedItemsCount(int packedItemsCount) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public int getPackedItems() { return packedItems; }
+    public void setPackedItemsCount(int packedItems) { this.packedItems = packedItems; }
+    
+    @Override
+    public String toString() {
+        return "PackingList{" +
+                "listId=" + listId +
+                ", listName='" + listName + '\'' +
+                ", destination='" + destination + '\'' +
+                ", tripType='" + tripType + '\'' +
+                '}';
     }
 }

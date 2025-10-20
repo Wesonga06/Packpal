@@ -18,6 +18,7 @@ public class ListDetailView extends JFrame {
     private JLabel titleLabel, progressLabel;
     private JProgressBar progressBar;
     private JPanel itemPanel;
+    private JTextField searchField;
 
     public ListDetailView(User currentUser, PackingList list) {
         this.currentUser = currentUser;
@@ -25,10 +26,10 @@ public class ListDetailView extends JFrame {
         this.packingListDAO = new PackingListDAO();
 
         setTitle("PackPal - " + (list.getListName() != null ? list.getListName() : list.getDestination()));
-        setSize(500, 700);
+        setSize(550, 750);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
-        setResizable(false);
+        setResizable(true);
 
         initComponents();
         loadItemsAndProgress();
@@ -41,10 +42,19 @@ public class ListDetailView extends JFrame {
         // Header
         mainPanel.add(createHeader(), BorderLayout.NORTH);
 
+        // Search and Items Panel
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBackground(Color.WHITE);
+        
         // Search bar
-        JTextField searchField = new JTextField("🔍 Search items...");
+        searchField = new JTextField("🔍 Search items...");
         searchField.setFont(new Font("Arial", Font.PLAIN, 14));
         searchField.setForeground(Color.GRAY);
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(10, 12, 10, 12)
+        ));
+        
         searchField.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent e) {
                 if (searchField.getText().equals("🔍 Search items...")) {
@@ -52,7 +62,6 @@ public class ListDetailView extends JFrame {
                     searchField.setForeground(Color.BLACK);
                 }
             }
-
             public void focusLost(FocusEvent e) {
                 if (searchField.getText().isEmpty()) {
                     searchField.setText("🔍 Search items...");
@@ -61,36 +70,41 @@ public class ListDetailView extends JFrame {
             }
         });
 
+        // Add real-time search functionality
+        searchField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                filterItems(searchField.getText());
+            }
+        });
+
         JPanel searchPanel = new JPanel(new BorderLayout());
         searchPanel.setBackground(Color.WHITE);
         searchPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 10, 20));
         searchPanel.add(searchField, BorderLayout.CENTER);
 
-        // Items
+        // Items list
         itemPanel = new JPanel();
         itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.Y_AXIS));
         itemPanel.setBackground(Color.WHITE);
+        itemPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        
         JScrollPane scrollPane = new JScrollPane(itemPanel);
         scrollPane.setBorder(null);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
-        JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.add(searchPanel, BorderLayout.NORTH);
         centerPanel.add(scrollPane, BorderLayout.CENTER);
         mainPanel.add(centerPanel, BorderLayout.CENTER);
 
-        // Progress
-        mainPanel.add(createProgressPanel(), BorderLayout.SOUTH);
+        // Progress and Add Button Panel
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setBackground(Color.WHITE);
+        bottomPanel.add(createProgressPanel(), BorderLayout.NORTH);
+        bottomPanel.add(createAddButtonPanel(), BorderLayout.SOUTH);
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
-        // Floating Add Button
-        JButton addButton = createFloatingAddButton();
-        JLayeredPane layeredPane = new JLayeredPane();
-        layeredPane.setPreferredSize(new Dimension(500, 700));
-        mainPanel.setBounds(0, 0, 500, 700);
-        addButton.setBounds(410, 580, 60, 60);
-
-        layeredPane.add(mainPanel, JLayeredPane.DEFAULT_LAYER);
-        layeredPane.add(addButton, JLayeredPane.PALETTE_LAYER);
-        add(layeredPane);
+        add(mainPanel);
     }
 
     private JPanel createHeader() {
@@ -100,8 +114,11 @@ public class ListDetailView extends JFrame {
 
         JButton backButton = new JButton("← Back");
         backButton.setForeground(Color.WHITE);
+        backButton.setFont(new Font("Arial", Font.BOLD, 14));
         backButton.setBorderPainted(false);
         backButton.setContentAreaFilled(false);
+        backButton.setFocusPainted(false);
+        backButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         backButton.addActionListener(e -> dispose());
 
         titleLabel = new JLabel(currentList.getListName() != null ? currentList.getListName() : currentList.getDestination());
@@ -109,12 +126,18 @@ public class ListDetailView extends JFrame {
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        JButton editButton = new JButton("Edit");
-        editButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Edit functionality coming soon!"));
+        JButton deleteButton = new JButton("🗑️ Delete List");
+        deleteButton.setForeground(Color.WHITE);
+        deleteButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        deleteButton.setBorderPainted(false);
+        deleteButton.setContentAreaFilled(false);
+        deleteButton.setFocusPainted(false);
+        deleteButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        deleteButton.addActionListener(e -> deleteList());
 
         headerPanel.add(backButton, BorderLayout.WEST);
         headerPanel.add(titleLabel, BorderLayout.CENTER);
-        headerPanel.add(editButton, BorderLayout.EAST);
+        headerPanel.add(deleteButton, BorderLayout.EAST);
         return headerPanel;
     }
 
@@ -122,7 +145,7 @@ public class ListDetailView extends JFrame {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 20, 20));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
         progressLabel = new JLabel("0 of 0 items packed");
         progressLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -132,6 +155,7 @@ public class ListDetailView extends JFrame {
         progressBar.setValue(0);
         progressBar.setForeground(PRIMARY_BLUE);
         progressBar.setBackground(new Color(230, 230, 230));
+        progressBar.setStringPainted(true);
 
         panel.add(progressLabel);
         panel.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -139,15 +163,22 @@ public class ListDetailView extends JFrame {
         return panel;
     }
 
-    private JButton createFloatingAddButton() {
-        JButton button = new JButton("+");
-        button.setFont(new Font("Arial", Font.BOLD, 32));
-        button.setForeground(Color.WHITE);
-        button.setOpaque(false);
-        button.setContentAreaFilled(false);
-        button.setBorderPainted(false);
-        button.addActionListener(e -> addNewItem());
-        return button;
+    private JPanel createAddButtonPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
+
+        JButton addButton = new JButton("+ Add Item");
+        addButton.setFont(new Font("Arial", Font.BOLD, 14));
+        addButton.setForeground(Color.WHITE);
+        addButton.setBackground(PRIMARY_BLUE);
+        addButton.setFocusPainted(false);
+        addButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        addButton.setBorder(BorderFactory.createEmptyBorder(12, 30, 12, 30));
+        addButton.addActionListener(e -> addNewItem());
+
+        panel.add(addButton);
+        return panel;
     }
 
     private void loadItemsAndProgress() {
@@ -155,9 +186,11 @@ public class ListDetailView extends JFrame {
         List<Item> items = packingListDAO.getItemsByListId(currentList.getListId());
 
         if (items.isEmpty()) {
-            JLabel emptyLabel = new JLabel("No items yet. Tap + to add items!");
+            JLabel emptyLabel = new JLabel("No items yet. Tap '+ Add Item' to start packing!");
             emptyLabel.setFont(new Font("Arial", Font.PLAIN, 14));
             emptyLabel.setForeground(Color.GRAY);
+            emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            emptyLabel.setBorder(BorderFactory.createEmptyBorder(30, 0, 30, 0));
             itemPanel.add(emptyLabel);
         } else {
             for (Item item : items) {
@@ -165,7 +198,41 @@ public class ListDetailView extends JFrame {
                 itemPanel.add(Box.createRigidArea(new Dimension(0, 10)));
             }
         }
+        
         updateProgressBar();
+        itemPanel.revalidate();
+        itemPanel.repaint();
+    }
+
+    private void filterItems(String searchText) {
+        itemPanel.removeAll();
+        
+        if (searchText.equals("🔍 Search items...") || searchText.trim().isEmpty()) {
+            loadItemsAndProgress();
+            return;
+        }
+        
+        List<Item> items = packingListDAO.getItemsByListId(currentList.getListId());
+        String lowerSearch = searchText.toLowerCase();
+        boolean found = false;
+        
+        for (Item item : items) {
+            if (item.getItemName().toLowerCase().contains(lowerSearch) || 
+                (item.getCategory() != null && item.getCategory().toLowerCase().contains(lowerSearch))) {
+                itemPanel.add(createItemCard(item));
+                itemPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+                found = true;
+            }
+        }
+        
+        if (!found) {
+            JLabel noResultsLabel = new JLabel("No items match your search");
+            noResultsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+            noResultsLabel.setForeground(Color.GRAY);
+            noResultsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            itemPanel.add(noResultsLabel);
+        }
+        
         itemPanel.revalidate();
         itemPanel.repaint();
     }
@@ -173,20 +240,28 @@ public class ListDetailView extends JFrame {
     private JPanel createItemCard(Item item) {
         JPanel card = new JPanel(new BorderLayout(10, 0));
         card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220)),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
 
         JCheckBox checkBox = new JCheckBox();
         checkBox.setSelected(item.isPacked());
         checkBox.setBackground(Color.WHITE);
         checkBox.addItemListener(e -> {
+            item.setPacked(checkBox.isSelected());
             packingListDAO.setItemPackedStatus(item.getItemId(), checkBox.isSelected());
             updateProgressBar();
         });
 
         JLabel nameLabel = new JLabel(item.getItemName());
         nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        if (item.isPacked()) {
+            nameLabel.setForeground(Color.GRAY);
+        }
 
-        JLabel categoryLabel = new JLabel(item.getCategory() == null ? "" : item.getCategory());
+        JLabel categoryLabel = new JLabel(item.getCategory() == null ? "Uncategorized" : item.getCategory());
         categoryLabel.setFont(new Font("Arial", Font.PLAIN, 11));
         categoryLabel.setForeground(Color.GRAY);
 
@@ -194,13 +269,15 @@ public class ListDetailView extends JFrame {
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setBackground(Color.WHITE);
         infoPanel.add(nameLabel);
-        if (!categoryLabel.getText().isEmpty()) infoPanel.add(categoryLabel);
+        infoPanel.add(categoryLabel);
 
         JButton deleteButton = new JButton("×");
-        deleteButton.setFont(new Font("Arial", Font.BOLD, 18));
+        deleteButton.setFont(new Font("Arial", Font.BOLD, 20));
         deleteButton.setForeground(Color.RED);
         deleteButton.setBorderPainted(false);
         deleteButton.setContentAreaFilled(false);
+        deleteButton.setFocusPainted(false);
+        deleteButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         deleteButton.addActionListener(e -> deleteItem(item));
 
         card.add(checkBox, BorderLayout.WEST);
@@ -212,21 +289,92 @@ public class ListDetailView extends JFrame {
     private void updateProgressBar() {
         int total = packingListDAO.getTotalItemsCount(currentList.getListId());
         int packed = packingListDAO.getPackedItemsCount(currentList.getListId());
+        
         progressLabel.setText("Packed " + packed + " of " + total + " items");
-        progressBar.setMaximum(total);
-        progressBar.setValue(packed);
+        
+        if (total > 0) {
+            int percentage = (int) ((packed * 100.0) / total);
+            progressBar.setMaximum(100);
+            progressBar.setValue(percentage);
+            progressBar.setString(percentage + "%");
+        } else {
+            progressBar.setMaximum(100);
+            progressBar.setValue(0);
+            progressBar.setString("0%");
+        }
     }
 
     private void addNewItem() {
-        JOptionPane.showMessageDialog(this, "Add item functionality coming soon!");
+        JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
+        
+        JTextField nameField = new JTextField();
+        JComboBox<String> categoryCombo = new JComboBox<>(new String[]{
+            "Clothing", "Toiletries", "Electronics", "Documents", "Food", "Other"
+        });
+
+        panel.add(new JLabel("Item Name:"));
+        panel.add(nameField);
+        panel.add(new JLabel("Category:"));
+        panel.add(categoryCombo);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Add New Item", 
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            String itemName = nameField.getText().trim();
+            String category = (String) categoryCombo.getSelectedItem();
+
+            if (!itemName.isEmpty()) {
+                Item newItem = new Item();
+                newItem.setListId(currentList.getListId());
+                newItem.setItemName(itemName);
+                newItem.setCategory(category);
+                newItem.setPacked(false);
+
+                boolean success = packingListDAO.addItemToList(newItem);
+                if (success) {
+                    loadItemsAndProgress();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to add item", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Item name cannot be empty", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            }
+        }
     }
 
     private void deleteItem(Item item) {
-        int confirm = JOptionPane.showConfirmDialog(this, "Delete this item?", "Confirm", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "Are you sure you want to delete '" + item.getItemName() + "'?", 
+            "Confirm Delete", 
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+        
         if (confirm == JOptionPane.YES_OPTION) {
-            // Implement deletion in DAO if needed
-            JOptionPane.showMessageDialog(this, "Item deleted!");
-            loadItemsAndProgress();
+            boolean success = packingListDAO.deleteItem(item.getItemId());
+            if (success) {
+                loadItemsAndProgress();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to delete item", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void deleteList() {
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Are you sure you want to delete this entire packing list?\nThis action cannot be undone.",
+            "Confirm Delete List",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            boolean success = packingListDAO.deletePackingList(currentList.getListId());
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Packing list deleted successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to delete packing list", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }

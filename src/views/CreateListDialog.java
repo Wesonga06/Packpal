@@ -12,6 +12,7 @@ public class CreateListDialog extends JDialog {
     private User currentUser;
     private PackingListDAO dao;
     private JFrame parentFrame;
+    private Runnable onListCreatedCallback;
     
     private JTextField listNameField;
     private JTextField descriptionField;
@@ -19,19 +20,20 @@ public class CreateListDialog extends JDialog {
     private JSpinner startDateSpinner;
     private JSpinner endDateSpinner;
     private JComboBox<String> tripTypeCombo;
-    private JTextField nameField;  // Fixed: Changed from Object to JTextField
     
-    public CreateListDialog(JFrame parent, User user) {
+    public CreateListDialog(JFrame parent, User user, Runnable onListCreated) {
         super(parent, "Create New List", true);
         this.parentFrame = parent;
         this.currentUser = user;
         this.dao = new PackingListDAO();
+        this.onListCreatedCallback = onListCreated;
         initUI();
     }
     
     private void initUI() {
-        setSize(450, 600);
+        setSize(450, 650);
         setLocationRelativeTo(parentFrame);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
@@ -50,14 +52,13 @@ public class CreateListDialog extends JDialog {
         backButton.addActionListener(e -> dispose());
         
         // Title
-        JLabel titleLabel = new JLabel("Create New List");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        JLabel titleLabel = new JLabel("Create New Packing List");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         // Trip name
         JLabel nameLabel = createLabel("Trip name (e.g. Weekend Getaway)");
         listNameField = createTextField();
-        nameField = listNameField;  // Assign to nameField if needed for compatibility
         
         // Description
         JLabel descriptionLabel = createLabel("Description");
@@ -68,7 +69,7 @@ public class CreateListDialog extends JDialog {
         destinationField = createTextField();
         
         // Start date
-        JLabel startDateLabel = createLabel("MM / dd / yyyy");
+        JLabel startDateLabel = createLabel("Start Date (MM/dd/yyyy)");
         SpinnerDateModel startModel = new SpinnerDateModel();
         startDateSpinner = new JSpinner(startModel);
         JSpinner.DateEditor startEditor = new JSpinner.DateEditor(startDateSpinner, "MM/dd/yyyy");
@@ -77,7 +78,7 @@ public class CreateListDialog extends JDialog {
         startDateSpinner.setFont(new Font("Arial", Font.PLAIN, 14));
         
         // End date
-        JLabel endDateLabel = createLabel("MM / dd / yyyy");
+        JLabel endDateLabel = createLabel("End Date (MM/dd/yyyy)");
         SpinnerDateModel endModel = new SpinnerDateModel();
         endDateSpinner = new JSpinner(endModel);
         JSpinner.DateEditor endEditor = new JSpinner.DateEditor(endDateSpinner, "MM/dd/yyyy");
@@ -94,7 +95,7 @@ public class CreateListDialog extends JDialog {
         tripTypeCombo.setBackground(Color.WHITE);
         
         // Generate List button
-        JButton generateButton = createBlueButton("Generate List");
+        JButton generateButton = createBlueButton("Create List");
         generateButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         generateButton.addActionListener(e -> generateList());
         
@@ -176,42 +177,61 @@ public class CreateListDialog extends JDialog {
         return button;
     }
     
-   private void generateList() {
-    String listName = listNameField.getText().trim();
-    String description = descriptionField.getText().trim();
-    String destination = destinationField.getText().trim();
-    String tripType = tripTypeCombo.getSelectedItem().toString();
+    private void generateList() {
+        String listName = listNameField.getText().trim();
+        String description = descriptionField.getText().trim();
+        String destination = destinationField.getText().trim();
+        String tripType = tripTypeCombo.getSelectedItem().toString();
 
-    if (listName.isEmpty()) {
-        JOptionPane.showMessageDialog(this,
-            "Please enter a trip name.",
-            "Error",
-            JOptionPane.ERROR_MESSAGE);
-        return;
+        if (listName.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                "Please enter a trip name.",
+                "Validation Error",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (destination.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                "Please enter a destination.",
+                "Validation Error",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Create and populate model
+        PackingList list = new PackingList();
+        list.setUserId(currentUser.getUserId());
+        list.setListName(listName);
+        list.setDescription(description);
+        list.setDestination(destination);
+        list.setTripType(tripType);
+
+        java.util.Date startDate = (java.util.Date) startDateSpinner.getValue();
+        java.util.Date endDate = (java.util.Date) endDateSpinner.getValue();
+        list.setStartDate(new Date(startDate.getTime()));
+        list.setEndDate(new Date(endDate.getTime()));
+
+        // Save to database
+        int listId = dao.createPackingList(list);
+
+        if (listId > 0) {
+            JOptionPane.showMessageDialog(this, 
+                "Packing list created successfully!\nYou can now add items to it.", 
+                "Success", 
+                JOptionPane.INFORMATION_MESSAGE);
+            
+            // Refresh parent dashboard
+            if (onListCreatedCallback != null) {
+                onListCreatedCallback.run();
+            }
+            
+            dispose();
+        } else {
+            JOptionPane.showMessageDialog(this, 
+                "Failed to create packing list. Please try again.", 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
-
-    // Create and populate model
-    PackingList list = new PackingList();
-    list.setUserId(currentUser.getUserId());
-    list.setListName(listName);
-    list.setDescription(description);
-    list.setDestination(destination);
-    list.setTripType(tripType);
-
-    java.util.Date startDate = (java.util.Date) startDateSpinner.getValue();
-    java.util.Date endDate = (java.util.Date) endDateSpinner.getValue();
-    list.setStartDate(new Date(startDate.getTime()));
-    list.setEndDate(new Date(endDate.getTime()));
-
-    // ✅ Call DAO to save and get generated list ID
-    int listId = dao.createPackingList(list);
-
-    if (listId > 0) {
-        JOptionPane.showMessageDialog(this, "Packing List created successfully! (ID: " + listId + ")");
-        dispose(); // Close dialog after success
-    } else {
-        JOptionPane.showMessageDialog(this, "Failed to create packing list.", "Error", JOptionPane.ERROR_MESSAGE);
-    }
-}
-
 }
